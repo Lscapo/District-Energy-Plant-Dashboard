@@ -605,6 +605,62 @@ function planRuleEdits(remote,upserts,removes,defaults){
   });
   return{list:out,added:added,removed:removed};
 }
+
+// ---- IMPORT: files saved by the ORIGINAL app (pretty-printed form data, every value is text) -> current record shape ----
+var LEGACY_STRING_KEYS=['lead_tower','chem_feeder_status','mode','running_pump','shift','operator','time','date','filename','unit','pump','zone'];
+var ROUND_SECTIONS=['chiller_plant','condenser_water_pumps','cooling_hx','cool_loop','cooling_tower','boiler_plant','feedwater_pumps','heating_hx','heat_loop','dhw_tank','hrc','hrc_pumps'];
+function legacyValue(key,v){
+  if(v===null||v===undefined)return null;
+  if(key==='notes')return String(v);
+  if(typeof v==='number')return isFinite(v)?v:null;
+  if(typeof v!=='string')return v;
+  var s=v.trim();
+  if(s===''||s==='-')return null;
+  if(key==='status'&&(s==='R'||s==='O'||s==='F'))return s;   // equipment status stays a letter; HRC status (a %) becomes a number
+  if(LEGACY_STRING_KEYS.indexOf(key)>=0)return v;
+  if(/^-?(\d+\.?\d*|\.\d+)$/.test(s))return parseFloat(s);       // "72.5" -> 72.5, "0" -> 0
+  return v;
+}
+function legacyWalk(o,key){
+  if(Array.isArray(o))return o.map(function(x){return legacyWalk(x,key);});
+  if(o&&typeof o==='object'){var out={};for(var k in o)out[k]=legacyWalk(o[k],k);return out;}
+  return legacyValue(key,o);
+}
+// two independent 32-bit hashes -> a stable id suffix: the same file always gets the same id, so re-importing never duplicates
+function hash12(str){
+  var h1=0x811c9dc5,h2=5381;
+  for(var i=0;i<str.length;i++){var c=str.charCodeAt(i);h1^=c;h1=Math.imul(h1,16777619)>>>0;h2=(Math.imul(h2,33)+c)>>>0;}
+  return(h1.toString(36)+h2.toString(36)).padStart(12,'0');
+}
+// -> {ok:true, record} or {ok:false, reason}
+function convertLegacy(obj){
+  if(!obj||typeof obj!=='object'||Array.isArray(obj)||!obj.meta||typeof obj.meta!=='object')return{ok:false,reason:'Not a plant round file (no "meta" block)'};
+  if(typeof obj.id==='string'&&obj.schema&&/^\d{4}-\d{2}-\d{2}$/.test(String(obj.meta.date||'')))return{ok:true,record:obj,passthrough:true};   // already in the current format
+  if(!ROUND_SECTIONS.some(function(k){return obj[k]!==undefined;}))return{ok:false,reason:'No equipment sections found'};
+  var ds=String(obj.meta.date===undefined||obj.meta.date===null?'':obj.meta.date).trim();
+  var m=/^(\d{4})(\d{2})(\d{2})$/.exec(ds)||/^(\d{4})-(\d{2})-(\d{2})$/.exec(ds);
+  if(!m)return{ok:false,reason:'Missing or unreadable date ("'+ds+'")'};
+  var y=+m[1],mo=+m[2],da=+m[3];
+  if(y<2000||y>2100||mo<1||mo>12||da<1||da>31)return{ok:false,reason:'Date out of range ("'+ds+'")'};
+  var round=parseInt(obj.meta.round,10);
+  if(!isFinite(round)||round<1)return{ok:false,reason:'Missing round number'};
+  var rec=legacyWalk(obj,''),meta=rec.meta;
+  meta.date=m[1]+'-'+m[2]+'-'+m[3];meta.round=round;delete meta.filename;
+  var tm=/^(\d{1,2}):(\d{2})/.exec(String(meta.time||'')),rat;
+  try{rat=new Date(y,mo-1,da,tm?+tm[1]:0,tm?+tm[2]:0).toISOString();}catch(e){rat=meta.date+'T00:00:00.000Z';}
+  var out={schema:1,id:'pr-'+m[1]+m[2]+m[3]+'-R'+round+'-i'+hash12(JSON.stringify(obj)),recorded_at:rat,app_version:'import v1 (original app)',meta:meta};
+  for(var k in rec){if(k!=='meta')out[k]=rec[k];}
+  return{ok:true,record:out};
+}
+function groupByMonth(records){var g={};records.forEach(function(r){var f=monthFile(r.meta&&r.meta.date);if(f)(g[f]=g[f]||[]).push(r);});return g;}
+// adds only the records whose id is not already on the server; nothing else is touched
+function planImport(remote,records){
+  var ids=new Set();for(var i=0;i<remote.length;i++)ids.add(remote[i]&&remote[i].id);
+  var add=records.filter(function(r){return!ids.has(r.id);});
+  if(!add.length)return null;
+  return{list:remote.concat(add),added:add.length,removed:0};
+}
+function monthsNeeded(oldestIso,now){var m=/^(\d{4})-(\d{2})/.exec(oldestIso||'');if(!m)return 3;return Math.max(1,(now.getFullYear()-(+m[1]))*12+(now.getMonth()+1-(+m[2]))+1);}
 // ===== DASH LOGIC END =====
 
 </script>
@@ -614,7 +670,7 @@ function planRuleEdits(remote,upserts,removes,defaults){
   var $ = function(id) { return document.getElementById(id); };
   var TOKEN_KEY = 'oslu-token', ADMIN_KEY = 'oslu-admin', REFRESH_MS = 7 * 60 * 1000, LIMIT_BYTES = 700 * 1024;
   var S = { records: [], fileOf: {}, sizes: {}, rules: RULES, monthsLoaded: 3, lastOk: null, lastErr: null, loadedOnce: false, allMissing: false,
-            nextAt: Date.now() + REFRESH_MS, admin: false, tab: 'over', loading: false, pendUp: {}, pendRm: {}, histShown: 100, rulesFromFile: false };
+            nextAt: Date.now() + REFRESH_MS, admin: false, tab: 'over', loading: false, pendUp: {}, pendRm: {}, histShown: 100, rulesFromFile: false, imp: null };
   try { S.admin = localStorage.getItem(ADMIN_KEY) === '1'; } catch (e) {}
   var toastTimer = null;
   function toast(msg, ms) { var t = $('toast'); t.textContent = msg; t.className = 'toast on'; clearTimeout(toastTimer); toastTimer = setTimeout(function() { t.className = 'toast'; }, ms || 3000); }
@@ -936,6 +992,7 @@ function planRuleEdits(remote,upserts,removes,defaults){
     var cat = catalog();
     h += '</tbody></table></div><div class="filters"><label>Add a limit for another reading<select id="add-path" class="fld"' + dis + '>' + cat.map(function(p) { return '<option value="' + esc(p) + '">' + esc(catLabel(p)) + '</option>'; }).join('') + '</select></label><label>Minimum<input class="fld" id="add-min" type="number" step="any" style="width:100px"' + dis + '></label><label>Maximum<input class="fld" id="add-max" type="number" step="any" style="width:100px"' + dis + '></label><button class="btn" id="btn-add"' + dis + (cat.length ? '' : ' disabled') + '>Add limit</button></div></div>';
     h += '<div class="card"><div class="filters"><button class="btn pri" id="btn-save-rules"' + (S.admin && pend ? '' : ' disabled') + '>Save changes' + (pend ? ' (' + pend + ')' : '') + '</button><button class="btn" id="btn-discard"' + (pend ? '' : ' disabled') + '>Discard</button><span class="note">' + (S.rulesFromFile ? 'Using the saved limits.json.' : 'Using the starting limits. The first save creates limits.json.') + '</span></div></div>';
+    h += importCardHtml();
     $('p-set').innerHTML = h;
   }
   function stage(id, f, raw) {
@@ -962,11 +1019,100 @@ function planRuleEdits(remote,upserts,removes,defaults){
     else { toast('⚠ Not saved: ' + ghExplain(res), 6000); renderSettings(); }
   }
 
+  // ── IMPORT OLD ROUNDS (JSON files saved by the original app) ──────────────
+  function importCardHtml() {
+    var m = S.imp, dis = S.admin && !(m && m.busy) ? '' : ' disabled';
+    var h = '<div class="card"><h2 class="w">Import old rounds</h2><div class="pad note">Choose the JSON files saved by the original app (its Export button). You can select hundreds at once (in the file picker press Ctrl+A). Nothing is saved until you press Import. Rounds that are already here are skipped, so running it twice is safe. ' + (S.admin ? '' : '<b>Turn on Admin mode to import.</b>') + '</div>' +
+      '<div class="filters"><label>JSON files<input type="file" id="imp-files" class="fld" multiple accept=".json,application/json"' + dis + '></label><button class="btn pri" id="btn-import"' + (m && m.ready && S.admin && !m.busy ? '' : ' disabled') + '>' + (m && m.ready ? 'Import ' + m.newCount + ' round' + (m.newCount === 1 ? '' : 's') : 'Import') + '</button></div>';
+    h += '<div id="imp-out">' + importSummaryHtml() + '</div>';
+    return h + '</div>';
+  }
+  function importSummaryHtml() {
+    var m = S.imp, h = '';
+    if (m) {
+      h += '<div class="pad" id="imp-sum" aria-live="polite"><p class="note"><b>' + esc(m.msg || '') + '</b></p>';
+      if (m.months && m.months.length) {
+        h += '<div class="scrollx"><table><thead><tr><th>Month file</th><th>Rounds in your files</th><th>New</th><th>Already here</th></tr></thead><tbody>' +
+          m.months.map(function(x) { return '<tr><td>' + esc(x.file) + '</td><td>' + x.total + '</td><td><b>' + x.add + '</b></td><td>' + x.have + '</td></tr>'; }).join('') + '</tbody></table></div>';
+        h += '<p class="note">Dates run from <b>' + esc(m.oldest) + '</b> to <b>' + esc(m.newest) + '</b>.</p>';
+      }
+      (m.warnings || []).forEach(function(w) { h += '<p class="flagl">⚠ ' + esc(w) + '</p>'; });
+      if (m.invalid && m.invalid.length) {
+        h += '<details class="dd" open><summary class="flagl">⚠ ' + m.invalid.length + ' file' + (m.invalid.length === 1 ? '' : 's') + ' will be skipped</summary><ul>' +
+          m.invalid.slice(0, 15).map(function(x) { return '<li>' + esc(x.name) + ': ' + esc(x.reason) + '</li>'; }).join('') + (m.invalid.length > 15 ? '<li>…and ' + (m.invalid.length - 15) + ' more</li>' : '') + '</ul></details>';
+      }
+      h += '</div>';
+    }
+    return h;
+  }
+  function renderImport() {
+    var o = $('imp-out'); if (!o) { renderSettings(); return; }
+    var m = S.imp; o.innerHTML = importSummaryHtml();
+    var b = $('btn-import'); if (b) { b.disabled = !(m && m.ready && S.admin && !m.busy); b.textContent = m && m.ready ? 'Import ' + m.newCount + ' round' + (m.newCount === 1 ? '' : 's') : 'Import'; }
+    var f = $('imp-files'); if (f) f.disabled = !(S.admin && !(m && m.busy));      // the file box itself is never re-created, so it keeps showing what was chosen
+  }
+  async function analyzeImport(fileList) {
+    var files = [].slice.call(fileList || []);
+    if (!files.length) { S.imp = null; renderImport(); return; }
+    var m = S.imp = { busy: true, ready: false, msg: 'Reading ' + files.length + ' file' + (files.length === 1 ? '' : 's') + '…', invalid: [], warnings: [], months: [], recs: {}, newRecs: {}, newCount: 0 };
+    renderImport();
+    var seen = {}, valid = [], dups = 0, i;
+    for (i = 0; i < files.length; i++) {
+      var obj;
+      try { obj = JSON.parse((await files[i].text()).replace(/^\uFEFF/, '')); } catch (e) { m.invalid.push({ name: files[i].name, reason: 'Not valid JSON' }); continue; }
+      (Array.isArray(obj) ? obj : [obj]).forEach(function(it) {
+        var c = convertLegacy(it);
+        if (!c.ok) { m.invalid.push({ name: files[i].name, reason: c.reason }); return; }
+        if (seen[c.record.id]) { dups++; return; }
+        seen[c.record.id] = 1; valid.push(c.record);
+      });
+    }
+    if (dups) m.warnings.push(dups + ' file' + (dups === 1 ? ' was' : 's were') + ' an exact copy of another selected file and will be imported once.');
+    if (!valid.length) { m.busy = false; m.msg = 'No usable rounds found in the ' + files.length + ' selected files.'; renderImport(); return; }
+    if (!GH_TOKEN) { m.busy = false; m.msg = 'No token set. Add the token first, then choose the files again.'; renderImport(); return; }
+    m.recs = groupByMonth(valid);
+    var dates = valid.map(function(r) { return r.meta.date; }).sort(); m.oldest = dates[0]; m.newest = dates[dates.length - 1];
+    var today = new Date(), todayIso = today.getFullYear() + '-' + pad2(today.getMonth() + 1) + '-' + pad2(today.getDate()), fut = valid.filter(function(r) { return r.meta.date > todayIso; }).length;
+    if (fut) m.warnings.push(fut + ' round' + (fut === 1 ? ' is' : 's are') + ' dated in the future. Check those dates in the files.');
+    m.msg = 'Checking what is already saved…'; renderImport();
+    var keys = Object.keys(m.recs).sort();
+    for (i = 0; i < keys.length; i++) {
+      var f = keys[i], r = await ghFetchRemote(f);
+      if (!r.ok) { m.busy = false; m.msg = 'Could not check ' + f + ': ' + ghExplain(r) + '. Nothing was imported.'; m.months = []; renderImport(); return; }
+      var have = new Set(r.list.map(function(x) { return x && x.id; })), add = m.recs[f].filter(function(x) { return !have.has(x.id); }), bytes = (r.size || 0) + JSON.stringify(add).length;
+      m.newRecs[f] = add; m.newCount += add.length;
+      m.months.push({ file: f, total: m.recs[f].length, add: add.length, have: m.recs[f].length - add.length });
+      if (bytes > LIMIT_BYTES) m.warnings.push(f + ' would grow to about ' + Math.round(bytes / 1024) + ' KB, over the 700 KB guide. It will still import; plan to archive that month.');
+    }
+    m.busy = false; m.ready = m.newCount > 0;
+    m.msg = m.newCount ? 'Ready: ' + m.newCount + ' new round' + (m.newCount === 1 ? '' : 's') + ' from ' + valid.length + ' usable round' + (valid.length === 1 ? '' : 's') + ' (' + files.length + ' files selected).' : 'Everything in these files is already here. Nothing to import.';
+    renderImport();
+  }
+  async function runImport() {
+    var m = S.imp; if (!m || !m.ready || m.busy || !S.admin) return;
+    m.busy = true; m.ready = false; renderImport();
+    var keys = Object.keys(m.newRecs).filter(function(k) { return m.newRecs[k].length; }).sort(), done = 0, failed = null;
+    for (var i = 0; i < keys.length; i++) {
+      var f = keys[i], recs = m.newRecs[f]; m.msg = 'Importing ' + f + ' (' + (i + 1) + ' of ' + keys.length + ')…'; renderImport();
+      var res = await ghMutate(f, function(rem) { return planImport(rem, recs); }, 'Import ' + recs.length + ' round' + (recs.length === 1 ? '' : 's') + ' from original app');
+      if (!res.ok) { failed = { f: f, res: res }; break; }
+      done += recs.length;
+    }
+    m.busy = false;
+    if (failed) { m.ready = true; m.msg = 'Stopped at ' + failed.f + ': ' + ghExplain(failed.res) + '. ' + done + ' round' + (done === 1 ? ' was' : 's were') + ' imported before that. Press Import again to continue; rounds already imported are skipped.'; renderImport(); return; }
+    m.msg = '✓ Imported ' + done + ' round' + (done === 1 ? '' : 's') + '.'; m.newCount = 0;
+    S.monthsLoaded = Math.max(S.monthsLoaded, monthsNeeded(m.oldest, new Date()));
+    toast('✓ Imported ' + done + ' rounds', 4000); renderImport(); load();
+  }
+
   // ── RENDER ────────────────────────────────────────────────────────────────
   function render() {
     renderBanner(); renderAlerts();
     $('btn-admin').textContent = 'Admin mode: ' + (S.admin ? 'on' : 'off'); $('btn-admin').className = 'tbtn' + (S.admin ? ' on' : ''); $('btn-admin').setAttribute('aria-pressed', S.admin ? 'true' : 'false');
-    renderOverview(); renderEquipment(); renderHistory(); renderSettings(); tick();
+    renderOverview(); renderEquipment(); renderHistory();
+    var ae = document.activeElement;
+    if (!(S.tab === 'set' && ae && $('p-set').contains(ae) && ae.tagName !== 'BUTTON')) renderSettings();   // never wipe a half-typed limit during auto-refresh
+    tick();
   }
   function showTab(t) {
     S.tab = t;
@@ -986,9 +1132,11 @@ function planRuleEdits(remote,upserts,removes,defaults){
     var t = e.target, id = t.getAttribute('data-id'), f = t.getAttribute('data-f'); if (!id || !f || !S.admin) return;
     stage(id, f, f === 'on' ? t.checked : t.value);
   });
+  $('p-set').addEventListener('change', function(e) { if (e.target.id === 'imp-files') analyzeImport(e.target.files); });
   $('p-set').addEventListener('click', function(e) {
     var t = e.target;
-    if (t.id === 'btn-save-rules') saveRules();
+    if (t.id === 'btn-import') runImport();
+    else if (t.id === 'btn-save-rules') saveRules();
     else if (t.id === 'btn-discard') { S.pendUp = {}; S.pendRm = {}; renderSettings(); }
     else if (t.getAttribute('data-rm') && S.admin) { S.pendRm[t.getAttribute('data-rm')] = 1; renderSettings(); }
     else if (t.id === 'btn-add' && S.admin) {
