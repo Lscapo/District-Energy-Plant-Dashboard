@@ -1,0 +1,2100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Plant Rounds">
+<meta name="theme-color" content="#1A9E8F">
+<title>OSLU Plant Rounds</title>
+<meta name="color-scheme" content="light dark">
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:#eef1f0;--card:#ffffff;--text:#1A2E2C;--text2:#3d4b49;--text3:#566462;
+  --border:#d8dedc;--input-bg:#ffffff;--input-border:#7d8b89;
+  --warm:#B5500A;--warm-l:#FDEBD0;--warm-alt:#FEF6EE;--warm-g:#F0C0A0;--warm-t:#6B2E00;
+  --cool:#1565A0;--cool-l:#D6EAF8;--cool-alt:#EEF6FD;--cool-g:#90C0E0;--cool-t:#0D3F6B;
+  --teal:#1A7A6E;--teal-l:#E0F4F1;--teal-alt:#F0FAF8;--teal-g:#A8D5CC;--teal-t:#0F5A50;
+  --ok:#1A7A3C;--off:#444444;--danger:#C0392B;--danger-text:#A32A1E;--danger-bg:#FBE4E1;
+  --on-solid:#ffffff;
+  --grad:linear-gradient(90deg,#0A6C96 0%,#12796D 50%,#3C7D22 100%);
+  --card-shadow:0 1px 4px rgba(0,0,0,.10);--btn-shadow:0 1px 2px rgba(0,0,0,.20);--bar-shadow:0 -2px 10px rgba(0,0,0,.10);
+  --toast-bg:#1A2E2C;--toast-text:#ffffff;--scrim:rgba(0,0,0,.55);
+  --r:8px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0e1514;--card:#172220;--text:#e8f0ee;--text2:#bccac7;--text3:#9bacaa;
+    --border:#2c3b38;--input-bg:#0f1918;--input-border:#6f817e;
+    --warm:#B5500A;--warm-l:#3a2412;--warm-alt:#1f1b17;--warm-g:#6b4220;--warm-t:#f6cfaa;
+    --cool:#1565A0;--cool-l:#15314b;--cool-alt:#18232c;--cool-g:#2d5a7e;--cool-t:#aad3f3;
+    --teal:#1A7A6E;--teal-l:#123733;--teal-alt:#162a28;--teal-g:#2c6a62;--teal-t:#a3ded4;
+    --danger-text:#ffa196;--danger-bg:#4a1f1a;
+    --card-shadow:0 1px 5px rgba(0,0,0,.55);--btn-shadow:0 1px 3px rgba(0,0,0,.65);--bar-shadow:0 -2px 12px rgba(0,0,0,.6);
+    --toast-bg:#e8f0ee;--toast-text:#0e1514;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+input[type=number]{-moz-appearance:textfield;appearance:textfield;}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+[hidden]{display:none !important;}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;background:var(--bg);color:var(--text);min-height:100vh;}
+.hdr{background:var(--grad);padding:calc(14px + env(safe-area-inset-top)) 16px 10px;}
+.hdr h1{color:var(--on-solid);font-size:17px;font-weight:700;}
+.hdr p{color:var(--on-solid);font-size:12px;margin-top:2px;}
+.ver{font-weight:700;margin-left:6px;white-space:nowrap;}
+.rpill{background:var(--card);color:var(--teal-t);font-size:12px;font-weight:700;padding:4px 14px;border-radius:20px;display:inline-block;margin-top:6px;}
+.syncbar{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;font-weight:600;border-bottom:1px solid var(--border);}
+.syncbar.ok{background:var(--teal-l);color:var(--teal-t);}
+.syncbar.pend{background:var(--warm-l);color:var(--warm-t);}
+.syncbar.err{background:var(--danger-bg);color:var(--danger-text);}
+.sdot{font-size:14px;flex-shrink:0;}
+.stxt{flex:1;line-height:1.3;}
+.sbtn{min-height:44px;padding:0 12px;border-radius:var(--r);border:1.5px solid var(--input-border);background:var(--card);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;box-shadow:var(--btn-shadow);flex-shrink:0;}
+.draftbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:10px 16px;font-size:14px;font-weight:700;background:var(--warm-l);color:var(--warm-t);border-bottom:2px solid var(--warm);}
+.draftbar span{flex:1;min-width:200px;}
+.draftstat{padding:6px 16px;font-size:12px;color:var(--text3);border-bottom:1px solid var(--border);}
+.draftstat.bad{color:var(--danger-text);font-weight:700;}
+.iosnote{padding:10px 16px;font-size:13px;line-height:1.4;background:var(--warm-l);color:var(--warm-t);border-bottom:1px solid var(--warm-g);font-weight:600;}
+.meta{background:var(--teal-l);border-bottom:2px solid var(--teal-g);padding:12px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mf label{font-size:12px;font-weight:700;color:var(--teal-t);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px;}
+.mf input,.mf select{width:100%;border:1.5px solid var(--input-border);border-radius:var(--r);padding:9px 10px;font-size:15px;background:var(--input-bg);color:var(--text);min-height:44px;}
+.prog{background:var(--teal-l);border-bottom:1px solid var(--teal-g);padding:8px 16px;display:flex;align-items:center;gap:12px;}
+.ptrack{flex:1;height:6px;background:var(--teal-g);border-radius:3px;overflow:hidden;}
+.pfill{height:100%;background:var(--grad);border-radius:3px;width:0%;transition:width .3s;}
+.prog span{font-size:12px;font-weight:700;color:var(--teal-t);white-space:nowrap;min-width:80px;text-align:right;}
+.tabs{display:flex;background:var(--card);border-bottom:2px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:1;min-width:0;padding:14px 4px;font-size:13px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;color:var(--text3);white-space:nowrap;text-align:center;}
+.tab.cact{color:var(--cool-t);border-bottom-color:var(--cool);background:var(--cool-l);}
+.tab.wact{color:var(--warm-t);border-bottom-color:var(--warm);background:var(--warm-l);}
+.tab.tact{color:var(--teal-t);border-bottom-color:var(--teal);background:var(--teal-l);}
+.page{display:none;padding:12px 12px calc(100px + env(safe-area-inset-bottom));}
+.page.act{display:block;}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--card-shadow);margin-bottom:14px;overflow:hidden;}
+.ch{padding:13px 16px;font-size:13px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--on-solid);}
+.ch.w{background:var(--warm);}
+.ch.c{background:var(--cool);}
+.ch.t{background:var(--teal);}
+.sh{padding:8px 16px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--teal-g);background:var(--teal-l);color:var(--teal-t);}
+.sh.w{background:var(--warm-l);color:var(--warm-t);border-color:var(--warm-g);}
+.sh.c{background:var(--cool-l);color:var(--cool-t);border-color:var(--cool-g);}
+.spr{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);}
+.spr.w{background:var(--warm-l);}
+.spr.c{background:var(--cool-l);}
+.spr.t{background:var(--teal-l);}
+.spr label{font-size:13px;font-weight:700;white-space:nowrap;}
+.spr.w label{color:var(--warm-t);}
+.spr.c label{color:var(--cool-t);}
+.spr.t label{color:var(--teal-t);}
+.spr input{border:1.5px solid var(--input-border);border-radius:6px;padding:8px 10px;font-size:15px;width:120px;text-align:center;min-height:44px;background:var(--input-bg);color:var(--text);}
+.dr{display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);gap:8px;min-height:52px;}
+.dr:last-child{border-bottom:none;}
+.dr.we:nth-child(even){background:var(--warm-alt);}
+.dr.ce:nth-child(even){background:var(--cool-alt);}
+.dr.te:nth-child(even){background:var(--teal-alt);}
+.rl{font-size:13px;font-weight:700;flex-shrink:0;}
+.rl.w90{min-width:90px;}
+.rl.w70{min-width:70px;}
+.flds{display:flex;gap:6px;flex:1;align-items:flex-end;flex-wrap:wrap;}
+.ig{display:flex;flex-direction:column;flex:1;min-width:50px;}
+.ig label{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;line-height:1.2;}
+.ig input,.ig select{border:1.5px solid var(--input-border);border-radius:6px;padding:9px 6px;font-size:14px;color:var(--text);background:var(--input-bg);width:100%;text-align:center;min-height:44px;}
+.ig input:focus,.ig select:focus,.hxr input:focus,.hxr select:focus,.sr input:focus,.spr input:focus,.lhdr input:focus,.mf input:focus,.mf select:focus,.nwrap textarea:focus,.hf input:focus,.hf select:focus,.mbox input:focus{outline:2px solid var(--teal-t);outline-offset:1px;}
+.rg{display:flex;flex-direction:column;}
+.rg label{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;}
+.rb-row{display:flex;gap:4px;}
+.rb{width:38px;height:44px;border:1.5px solid var(--input-border);border-radius:6px;background:var(--input-bg);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);}
+.rb.ron{background:var(--ok);border-color:var(--ok);color:var(--on-solid);}
+.rb.oon{background:var(--off);border-color:var(--off);color:var(--on-solid);}
+.rb.fon{background:var(--danger);border-color:var(--danger);color:var(--on-solid);}
+.rng{display:block;font-size:12px;color:var(--text3);line-height:1.3;text-transform:none;letter-spacing:0;font-weight:600;}
+.rng.bad{color:var(--danger-text);font-weight:700;}
+input.bad{border-color:var(--danger);box-shadow:0 0 0 1px var(--danger);}
+.hxzone .rng{font-weight:700;}
+input::placeholder,textarea::placeholder{color:var(--text3);opacity:1;}
+.lhdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);}
+.lhdr.w{background:var(--warm-l);}
+.lhdr.c{background:var(--cool-l);}
+.lhdr span{font-size:13px;font-weight:700;}
+.lhdr.w span{color:var(--warm-t);}
+.lhdr.c span{color:var(--cool-t);}
+.lhdr input{border:1.5px solid var(--input-border);border-radius:6px;padding:8px 10px;font-size:15px;width:110px;text-align:center;min-height:44px;background:var(--input-bg);color:var(--text);}
+.hxhdr{display:grid;grid-template-columns:80px repeat(6,1fr);gap:4px;padding:7px 12px;border-bottom:1px solid var(--border);}
+.hxhdr.w{background:var(--warm-l);}
+.hxhdr.c{background:var(--cool-l);}
+.hxhdr span{font-size:12px;font-weight:700;text-align:center;line-height:1.2;}
+.hxhdr.w span{color:var(--warm-t);}
+.hxhdr.c span{color:var(--cool-t);}
+.hxhdr span:first-child{text-align:left;}
+.hxr{display:grid;grid-template-columns:80px repeat(6,1fr);gap:4px;padding:8px 12px;border-bottom:1px solid var(--border);align-items:center;}
+.hxr.we:nth-child(even){background:var(--warm-alt);}
+.hxr.ce:nth-child(even){background:var(--cool-alt);}
+.hxzone{font-size:13px;font-weight:700;line-height:1.4;}
+.hxzone small{font-size:12px;color:var(--text3);font-weight:400;display:block;}
+.hxr input,.hxr select{border:1.5px solid var(--input-border);border-radius:5px;padding:8px 1px;font-size:13px;text-align:center;width:100%;min-height:44px;background:var(--input-bg);color:var(--text);}
+.sr{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);gap:12px;min-height:52px;}
+.sr:last-child{border-bottom:none;}
+.sr.ce:nth-child(even){background:var(--cool-alt);}
+.sr.we:nth-child(even){background:var(--warm-alt);}
+.sr label{font-size:13px;font-weight:600;min-width:150px;flex-shrink:0;}
+.sr input{flex:1;min-width:90px;border:1.5px solid var(--input-border);border-radius:6px;padding:9px 10px;font-size:15px;text-align:center;min-height:44px;background:var(--input-bg);color:var(--text);}
+.nwrap{padding:14px 16px;}
+.nwrap textarea{width:100%;border:1.5px solid var(--input-border);border-radius:var(--r);padding:12px;font-size:15px;resize:vertical;min-height:130px;font-family:inherit;line-height:1.6;color:var(--text);background:var(--input-bg);}
+.sumbox{padding:14px 16px;font-size:13px;line-height:2;color:var(--text2);}
+.sumbox b{color:var(--text);}
+.flagtxt{color:var(--danger-text);font-weight:700;display:block;}
+.bot{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;box-shadow:var(--bar-shadow);z-index:100;}
+.btn{flex:1;min-height:48px;padding:11px 6px;border:none;border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;text-align:center;line-height:1.2;box-shadow:var(--btn-shadow);}
+.btn:active{box-shadow:none;transform:translateY(1px);}
+.btn[disabled]{opacity:1;filter:grayscale(.6);cursor:default;}
+.btn-s{background:var(--teal-l);color:var(--teal-t);}
+.btn-e{background:var(--grad);color:var(--on-solid);}
+.btn-go{flex:1.6;}
+.toast{position:fixed;bottom:calc(100px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--toast-bg);color:var(--toast-text);padding:12px 20px;border-radius:24px;font-size:14px;font-weight:600;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;width:max-content;max-width:90vw;text-align:center;line-height:1.35;}
+.toast.on{opacity:1;}
+.hf{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);align-items:center;}
+.hf select,.hf input[type=text]{border:1.5px solid var(--input-border);border-radius:6px;padding:8px 10px;font-size:14px;min-height:44px;background:var(--input-bg);color:var(--text);flex:1;min-width:120px;}
+.hf .chk{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;min-height:44px;}
+.hf .chk input{width:22px;height:22px;}
+.hstat{padding:8px 16px;font-size:12px;color:var(--text3);}
+.hrow{border-bottom:1px solid var(--border);}
+.hrow summary{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:12px 16px;cursor:pointer;min-height:52px;font-size:14px;color:var(--text);}
+.hrow .hdate{font-weight:700;}
+.hrow .hop{color:var(--text2);flex:1;min-width:80px;}
+.hpre{padding:4px 16px 14px;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word;color:var(--text2);font-family:inherit;}
+.chip{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:700;white-space:nowrap;}
+.chip.pend{background:var(--warm-l);color:var(--warm-t);}
+.chip.ok{background:var(--teal-l);color:var(--teal-t);}
+.chip.flag{background:var(--danger);color:var(--on-solid);}
+.hact{display:flex;gap:10px;padding:12px 16px;}
+.empty{padding:22px 16px;font-size:14px;color:var(--text2);line-height:1.5;}
+.modal{position:fixed;inset:0;background:var(--scrim);z-index:400;display:flex;align-items:center;justify-content:center;padding:16px;}
+.mbox{background:var(--card);color:var(--text);border-radius:12px;padding:20px;width:100%;max-width:420px;box-shadow:var(--card-shadow);}
+.mbox h2{font-size:17px;margin-bottom:8px;}
+.mbox p{font-size:13px;line-height:1.5;color:var(--text2);margin-bottom:10px;}
+.mbox label{font-size:13px;font-weight:700;display:block;margin-bottom:4px;}
+.mbox input{width:100%;border:1.5px solid var(--input-border);border-radius:6px;padding:10px;font-size:16px;min-height:44px;background:var(--input-bg);color:var(--text);margin-bottom:12px;}
+.mrow{display:flex;gap:8px;flex-wrap:wrap;}
+@media (max-width:480px){.hxhdr,.hxr{grid-template-columns:62px repeat(6,1fr);gap:3px;padding-left:8px;padding-right:8px;}.hxr select{padding-left:0;padding-right:0;}}
+.errbar{padding:12px 16px;font-size:14px;font-weight:700;background:var(--danger);color:var(--on-solid);line-height:1.4;word-break:break-word;}
+.diag{font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word;background:var(--input-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px;margin-bottom:10px;}
+
+@media print {
+  @page { margin: 5mm; size: letter portrait; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box !important; }
+
+  /* Hide app, show only print pages */
+  body > *:not(.print-page-wrap) { display: none !important; }
+  .print-page-wrap { display: block !important; }
+
+  /* Pages */
+  .pp { page-break-after: always; }
+  .pp:last-child { page-break-after: avoid; }
+
+  /* Print header */
+  .ph { background: linear-gradient(90deg,#29B5E8 0%,#1A9E8F 50%,#6DC44B 100%) !important;
+    padding: 4px 8px; color: white; margin-bottom: 4px; font-size: 9px; font-weight: 700; }
+  .ph-sub { font-size: 7.5px; font-weight: 400; display: block; margin-top: 1px; }
+
+  /* TWO COLUMN TABLE LAYOUT */
+  .pc2 { width: 100% !important; border-collapse: collapse !important; display: table !important; }
+  .pcol { display: table-cell !important; width: 50% !important; vertical-align: top !important; padding: 0 2px !important; }
+  .pcol:first-child { padding-left: 0 !important; padding-right: 3px !important; }
+  .pcol:last-child { padding-left: 3px !important; padding-right: 0 !important; }
+  .pcol-inner { display: flex !important; flex-direction: column !important; gap: 3px !important; }
+
+  /* Cards */
+  .pcard { border: 1px solid #ccc !important; overflow: hidden !important; margin-bottom: 0 !important; page-break-inside: avoid !important; }
+
+  /* Section headers */
+  .pch { padding: 3px 6px !important; font-size: 8px !important; font-weight: 700 !important;
+    text-transform: uppercase !important; color: #fff !important; letter-spacing: .2px !important; }
+  .pch.w { background: #C0580A !important; }
+  .pch.c { background: #1565A0 !important; }
+  .pch.t { background: #1A7A6E !important; }
+
+  /* Sub headers */
+  .psh { padding: 2px 6px !important; font-size: 7px !important; font-weight: 700 !important;
+    text-transform: uppercase !important; border-bottom: 1px solid #ddd !important; }
+  .psh.w { background: #FDEBD0 !important; color: #6B2E00 !important; }
+  .psh.c { background: #D6EAF8 !important; color: #0D3F6B !important; }
+  .psh.t { background: #E0F4F1 !important; color: #1A7A6E !important; }
+
+  /* Setpoint row */
+  .psp { display: flex !important; align-items: center !important; gap: 6px !important;
+    padding: 3px 6px !important; font-size: 8px !important; font-weight: 700 !important;
+    border-bottom: 1px solid #eee !important; }
+  .psp.w { background: #FDEBD0 !important; color: #6B2E00 !important; }
+  .psp.c { background: #D6EAF8 !important; color: #0D3F6B !important; }
+  .psp span { font-size: 8px !important; min-width: 30px !important;
+    border-bottom: 1px solid #999 !important; display: inline-block !important; }
+
+  /* Loop PSI row */
+  .plp { display: flex !important; align-items: center !important;
+    justify-content: space-between !important; padding: 3px 6px !important;
+    font-size: 8px !important; font-weight: 700 !important; border-bottom: 1px solid #eee !important; }
+  .plp.w { background: #FDEBD0 !important; color: #6B2E00 !important; }
+  .plp.c { background: #D6EAF8 !important; color: #0D3F6B !important; }
+  .plp > span:last-child { font-size: 8px !important; min-width: 40px !important;
+    border-bottom: 1px solid #999 !important; display: inline-block !important; }
+
+  /* Data rows */
+  .pdr { display: flex !important; align-items: center !important;
+    padding: 2px 6px !important; gap: 4px !important;
+    border-bottom: 1px solid #f0f0f0 !important; min-height: 16px !important; }
+  .pdr.we:nth-child(even) { background: #FEF6EE !important; }
+  .pdr.ce:nth-child(even) { background: #EEF6FD !important; }
+  .pdr.te:nth-child(even) { background: #F0FAF8 !important; }
+
+  /* Simple value rows */
+  .pvr { display: flex !important; align-items: center !important;
+    padding: 2px 6px !important; gap: 4px !important;
+    border-bottom: 1px solid #f0f0f0 !important; min-height: 14px !important; }
+  .pvr.we:nth-child(even) { background: #FEF6EE !important; }
+  .pvr-lbl { font-size: 7.5px !important; font-weight: 600 !important;
+    min-width: 105px !important; flex-shrink: 0 !important; }
+  .pvr-val { font-size: 8px !important; flex: 1 !important;
+    border-bottom: 1px solid #aaa !important; min-height: 10px !important; }
+
+  /* Row label */
+  .prl { font-size: 8px !important; font-weight: 700 !important; flex-shrink: 0 !important; min-width: 42px !important; display: inline-block !important; }
+  .prl.w65 { min-width: 60px !important; }
+
+  /* Field groups */
+  .pfg { display: flex !important; gap: 4px !important; flex: 1 !important;
+    align-items: flex-end !important; }
+
+  /* Individual field */
+  .pfi { display: flex !important; flex-direction: column !important;
+    flex: 1 !important; min-width: 24px !important; }
+  .pfi-lbl { font-size: 6.5px !important; font-weight: 700 !important; color: #888 !important;
+    text-transform: uppercase !important; margin-bottom: 1px !important;
+    white-space: nowrap !important; }
+  .pfi-val { font-size: 8px !important; border-bottom: 1px solid #aaa !important;
+    min-height: 11px !important; text-align: center !important; }
+
+  /* R/O/F */
+  .prof { display: flex !important; flex-direction: column !important; flex-shrink: 0 !important; }
+  .prof-lbl { font-size: 6.5px !important; font-weight: 700 !important; color: #888 !important;
+    text-transform: uppercase !important; margin-bottom: 1px !important; }
+  .prof-row { display: flex !important; gap: 2px !important; }
+  .prb { width: 13px !important; height: 13px !important; border: 1px solid #ccc !important;
+    border-radius: 2px !important; font-size: 6.5px !important; font-weight: 700 !important;
+    display: flex !important; align-items: center !important; justify-content: center !important;
+    color: #ccc !important; }
+  .prb.r { background: #1A7A3C !important; color: #fff !important; border-color: #1A7A3C !important; }
+  .prb.o { background: #444 !important; color: #fff !important; border-color: #444 !important; }
+  .prb.f { background: #C0392B !important; color: #fff !important; border-color: #C0392B !important; }
+
+  /* HX table */
+  .phxhdr { display: grid !important; grid-template-columns: 40px repeat(6,1fr) !important;
+    gap: 2px !important; padding: 2px 4px !important; }
+  .phxhdr.w { background: #FDEBD0 !important; color: #6B2E00 !important; }
+  .phxhdr.c { background: #D6EAF8 !important; color: #0D3F6B !important; }
+  .phxhdr > span { font-size: 7px !important; font-weight: 700 !important;
+    text-align: center !important; }
+  .phxhdr > span:first-child { text-align: left !important; }
+  .phxr { display: grid !important; grid-template-columns: 40px repeat(6,1fr) !important;
+    gap: 2px !important; padding: 2px 4px !important;
+    border-bottom: 1px solid #f0f0f0 !important; align-items: center !important; }
+  .phxr.we:nth-child(even) { background: #FEF6EE !important; }
+  .phxr.ce:nth-child(even) { background: #EEF6FD !important; }
+  .phxzone { font-size: 8px !important; font-weight: 700 !important; line-height: 1.3 !important; }
+  .phxzone small { font-size: 7px !important; color: #888 !important; display: block !important; }
+  .phxval { font-size: 8px !important; border-bottom: 1px solid #aaa !important;
+    min-height: 11px !important; text-align: center !important; }
+
+  /* Notes */
+  .pnotes { padding: 6px 8px !important; }
+  .pnotes-box { border: 1px solid #ccc !important; min-height: 200px !important;
+    padding: 8px !important; font-size: 9px !important; line-height: 1.6 !important; white-space: pre-wrap !important; }
+  .psumbox { padding: 6px 8px !important; font-size: 8.5px !important; line-height: 1.8 !important; }
+}
+.print-header { display: none; }
+</style>
+</head>
+<body>
+
+<div class="print-header" style="background:linear-gradient(90deg,#29B5E8,#1A9E8F 50%,#6DC44B);padding:8px 14px;color:white;">
+  <strong style="font-size:13px;">ONNI South Lake Union — District Energy Equipment Log — Capilano Energy</strong>
+  <span id="print-meta" style="font-size:11px;display:block;margin-top:2px;"></span>
+</div>
+<div class="hdr">
+  <h1>ONNI South Lake Union</h1>
+  <p>District Energy Equipment Log — Capilano Energy <span class="ver" id="ver"></span></p>
+  <span class="rpill" id="rpill">ROUND 1</span>
+</div>
+
+<div class="errbar" id="errbar" role="alert" hidden></div>
+<div class="syncbar ok" id="syncbar" role="status" aria-live="polite">
+  <span class="sdot" id="sdot">✓</span>
+  <span class="stxt" id="stxt">All rounds synced</span>
+  <button class="sbtn" id="btn-sync">Sync now</button>
+  <button class="sbtn" id="btn-token">Token</button>
+</div>
+<div class="draftbar" id="draftbar" hidden role="alert"><span id="draftmsg"></span><button class="sbtn" id="btn-restore">Restore</button><button class="sbtn" id="btn-discard-draft">Discard</button></div>
+<div class="draftstat" id="draftstat" role="status"></div>
+<div class="iosnote" id="iosnote" hidden>Open this app from its Home Screen icon, not a Safari tab. A Safari tab keeps separate storage, and Safari can erase saved rounds from sites you have not opened for about 7 days.</div>
+
+<div class="meta">
+  <div class="mf"><label>Date</label><input type="date" id="m-date"></div>
+  <div class="mf"><label>Time</label><input type="time" id="m-time"></div>
+  <div class="mf"><label>Operator</label><input type="text" id="m-op" placeholder="Your name"></div>
+  <div class="mf"><label>OSA Temp °F</label><input type="number" id="m-osa" placeholder="°F" step="0.1"></div>
+  <div class="mf"><label>Round</label>
+    <select id="m-round">
+      <option value="1">Round 1</option>
+      <option value="2">Round 2</option>
+    </select>
+  </div>
+  <div class="mf"><label>Shift</label><input type="text" id="m-shift" placeholder="e.g. Sunday Midday"></div>
+</div>
+
+<div class="prog">
+  <div class="ptrack"><div class="pfill" id="pfill"></div></div>
+  <span id="ptxt">0 / 0 fields</span>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab cact" data-target="cool" data-cls="cact">🔵 Cooling</button>
+  <button class="tab" data-target="heat" data-cls="wact">🔶 Heating</button>
+  <button class="tab" data-target="shared" data-cls="tact">🟢 Shared</button>
+  <button class="tab" data-target="notes" data-cls="tact">📝 Notes</button>
+  <button class="tab" data-target="hist" data-cls="tact">🕘 History</button>
+</div>
+
+<!-- COOLING PAGE -->
+<div class="page act" id="p-cool">
+  <div class="card">
+    <div class="ch c">Chiller Plant</div>
+    <div class="spr c"><label>Cooling Setpoint (°F):</label><input type="number" id="ch-sp" placeholder="°F" step="0.1"></div>
+    <div class="sh c">Ch-1</div>
+    <div class="dr ce">
+      <span class="rl w70">Ch-1</span>
+      <div class="flds">
+        <div class="ig"><label>Supply Temp</label><input type="number" id="ch1-tmp" placeholder="°F" step="0.1"></div>
+        <div class="ig"><label>Pct Full Pwr</label><input type="number" id="ch1-pct" placeholder="%" step="0.1" min="0" max="100"></div>
+        <div class="rg"><label>Status</label><div class="rb-row">
+          <button class="rb" data-rof="ch1-rof" data-val="R">R</button>
+          <button class="rb" data-rof="ch1-rof" data-val="O">O</button>
+          <button class="rb" data-rof="ch1-rof" data-val="F">F</button>
+          <input type="hidden" id="ch1-rof" value="">
+        </div></div>
+      </div>
+    </div>
+    <div class="sh c">Ch-2</div>
+    <div class="dr ce">
+      <span class="rl w70">Ch-2</span>
+      <div class="flds">
+        <div class="ig"><label>Supply Temp</label><input type="number" id="ch2-tmp" placeholder="°F" step="0.1"></div>
+        <div class="ig"><label>Pct Full Pwr</label><input type="number" id="ch2-pct" placeholder="%" step="0.1" min="0" max="100"></div>
+        <div class="rg"><label>Status</label><div class="rb-row">
+          <button class="rb" data-rof="ch2-rof" data-val="R">R</button>
+          <button class="rb" data-rof="ch2-rof" data-val="O">O</button>
+          <button class="rb" data-rof="ch2-rof" data-val="F">F</button>
+          <input type="hidden" id="ch2-rof" value="">
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch c">Condenser Water Pumps</div>
+    <div class="sh c">CW Pump 1</div>
+    <div class="dr ce"><span class="rl w90">CW Pump 1</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="cw1-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>HZ</label><input type="number" id="cw1-hz" placeholder="Hz" step="0.01"></div><div class="ig"><label>Amps</label><input type="number" id="cw1-amps" placeholder="A" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="cw1-rof" data-val="R">R</button><button class="rb" data-rof="cw1-rof" data-val="O">O</button><button class="rb" data-rof="cw1-rof" data-val="F">F</button><input type="hidden" id="cw1-rof" value=""></div></div></div></div>
+    <div class="sh c">CW Pump 2</div>
+    <div class="dr ce"><span class="rl w90">CW Pump 2</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="cw2-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>HZ</label><input type="number" id="cw2-hz" placeholder="Hz" step="0.01"></div><div class="ig"><label>Amps</label><input type="number" id="cw2-amps" placeholder="A" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="cw2-rof" data-val="R">R</button><button class="rb" data-rof="cw2-rof" data-val="O">O</button><button class="rb" data-rof="cw2-rof" data-val="F">F</button><input type="hidden" id="cw2-rof" value=""></div></div></div></div>
+    <div class="sh c">CW Pump 3</div>
+    <div class="dr ce"><span class="rl w90">CW Pump 3</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="cw3-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>HZ</label><input type="number" id="cw3-hz" placeholder="Hz" step="0.01"></div><div class="ig"><label>Amps</label><input type="number" id="cw3-amps" placeholder="A" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="cw3-rof" data-val="R">R</button><button class="rb" data-rof="cw3-rof" data-val="O">O</button><button class="rb" data-rof="cw3-rof" data-val="F">F</button><input type="hidden" id="cw3-rof" value=""></div></div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="ch c">Cooling HX (HX-7, 8, 9)</div>
+    <div class="spr c"><label>HX Setpoint (°F):</label><input type="number" id="chx-sp" placeholder="°F" step="0.1"></div>
+    <div class="hxhdr c"><span>Zone</span><span>Supply Temp</span><span>Valve %</span><span>Run Pump</span><span>PSI</span><span>HZ</span><span>Amps</span></div>
+    <div class="hxr ce"><div class="hxzone">HX-7<small>&lt;20</small></div><input type="number" id="hx7-tmp" placeholder="°F" step="0.1"><input type="number" id="hx7-vlv" placeholder="%" step="0.1" min="0" max="100"><select id="hx7-pmp"><option value="">-</option><option>A</option><option>B</option></select><input type="number" id="hx7-psi" placeholder="PSI" step="0.1"><input type="number" id="hx7-hz" placeholder="Hz" step="0.01"><input type="number" id="hx7-amp" placeholder="A" step="0.1"></div>
+    <div class="hxr ce"><div class="hxzone">HX-8<small>T1 &gt;20</small></div><input type="number" id="hx8-tmp" placeholder="°F" step="0.1"><input type="number" id="hx8-vlv" placeholder="%" step="0.1"><select id="hx8-pmp"><option value="">-</option><option>A</option><option>B</option></select><input type="number" id="hx8-psi" placeholder="PSI" step="0.1"><input type="number" id="hx8-hz" placeholder="Hz" step="0.01"><input type="number" id="hx8-amp" placeholder="A" step="0.1"></div>
+    <div class="hxr ce"><div class="hxzone">HX-9<small>T2 &gt;20</small></div><input type="number" id="hx9-tmp" placeholder="°F" step="0.1"><input type="number" id="hx9-vlv" placeholder="%" step="0.1"><select id="hx9-pmp"><option value="">-</option><option>A</option><option>B</option></select><input type="number" id="hx9-psi" placeholder="PSI" step="0.1"><input type="number" id="hx9-hz" placeholder="Hz" step="0.01"><input type="number" id="hx9-amp" placeholder="A" step="0.1"></div>
+  </div>
+
+  <div class="card">
+    <div class="ch c">Cool Loop Pressures</div>
+    <div class="lhdr c"><span>Cool Loop PSI</span><input type="number" id="cl-psi" placeholder="PSI" step="0.1"></div>
+    <div class="sh c">Circ Pump 1</div>
+    <div class="dr ce"><span class="rl w90">Circ Pump 1</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="cp1-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>HZ</label><input type="number" id="cp1-hz" placeholder="Hz" step="0.01"></div><div class="ig"><label>Amps</label><input type="number" id="cp1-amps" placeholder="A" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="cp1-rof" data-val="R">R</button><button class="rb" data-rof="cp1-rof" data-val="O">O</button><button class="rb" data-rof="cp1-rof" data-val="F">F</button><input type="hidden" id="cp1-rof" value=""></div></div></div></div>
+    <div class="sh c">Circ Pump 2</div>
+    <div class="dr ce"><span class="rl w90">Circ Pump 2</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="cp2-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>HZ</label><input type="number" id="cp2-hz" placeholder="Hz" step="0.01"></div><div class="ig"><label>Amps</label><input type="number" id="cp2-amps" placeholder="A" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="cp2-rof" data-val="R">R</button><button class="rb" data-rof="cp2-rof" data-val="O">O</button><button class="rb" data-rof="cp2-rof" data-val="F">F</button><input type="hidden" id="cp2-rof" value=""></div></div></div></div>
+    <div class="sh c">Circ Pump 3</div>
+    <div class="dr ce"><span class="rl w90">Circ Pump 3</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="cp3-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>HZ</label><input type="number" id="cp3-hz" placeholder="Hz" step="0.01"></div><div class="ig"><label>Amps</label><input type="number" id="cp3-amps" placeholder="A" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="cp3-rof" data-val="R">R</button><button class="rb" data-rof="cp3-rof" data-val="O">O</button><button class="rb" data-rof="cp3-rof" data-val="F">F</button><input type="hidden" id="cp3-rof" value=""></div></div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="ch c">Cooling Tower</div>
+    <div class="sr ce"><label>Lead Tower</label><input type="text" id="ct-lead" placeholder="Tower #"></div>
+    <div class="sr ce"><label>CT Setpoint (°F)</label><input type="number" id="ct-sp" placeholder="°F" step="0.1"></div>
+    <div class="sr ce"><label>Tower Return Temp</label><input type="number" id="ct-ret" placeholder="°F" step="0.1"></div>
+    <div class="sr ce"><label>Chem Feeder Status</label><input type="text" id="ct-chem" placeholder="ON / OFF"></div>
+    <div class="sr ce"><label>pH</label><input type="number" id="ct-ph" placeholder="7.0–8.5" step="0.1"></div>
+    <div class="sr ce"><label>ORP (mV)</label><input type="number" id="ct-orp" placeholder="mV"></div>
+    <div class="sr ce"><label>Temperature (°F)</label><input type="number" id="ct-tmp" placeholder="°F" step="0.1"></div>
+    <div class="sr ce"><label>Conductivity (μS/cm)</label><input type="number" id="ct-cond" placeholder="μS/cm"></div>
+    <div class="sr ce"><label>Basket Strainer 1 PSI</label><input type="number" id="ct-bs1" placeholder="PSI" step="0.1"></div>
+    <div class="sr ce"><label>Basket Strainer 2 PSI</label><input type="number" id="ct-bs2" placeholder="PSI" step="0.1"></div>
+  </div>
+</div>
+
+<!-- HEATING PAGE -->
+<div class="page" id="p-heat">
+  <div class="card">
+    <div class="ch w">Boiler Plant</div>
+    <div class="spr w"><label>Heating Setpoint (°F):</label><input type="number" id="b-sp" placeholder="°F" step="0.1"></div>
+    <div class="sh w">B-1</div>
+    <div class="dr we"><span class="rl w70">B-1</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="b1-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>Temp °F</label><input type="number" id="b1-tmp" placeholder="°F" step="0.1"></div><div class="ig"><label>Fire %</label><input type="number" id="b1-fire" placeholder="%" step="1" min="0" max="100"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="b1-rof" data-val="R">R</button><button class="rb" data-rof="b1-rof" data-val="O">O</button><button class="rb" data-rof="b1-rof" data-val="F">F</button><input type="hidden" id="b1-rof" value=""></div></div></div></div>
+    <div class="sh w">B-2</div>
+    <div class="dr we"><span class="rl w70">B-2</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="b2-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>Temp °F</label><input type="number" id="b2-tmp" placeholder="°F" step="0.1"></div><div class="ig"><label>Fire %</label><input type="number" id="b2-fire" placeholder="%" step="1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="b2-rof" data-val="R">R</button><button class="rb" data-rof="b2-rof" data-val="O">O</button><button class="rb" data-rof="b2-rof" data-val="F">F</button><input type="hidden" id="b2-rof" value=""></div></div></div></div>
+    <div class="sh w">B-3</div>
+    <div class="dr we"><span class="rl w70">B-3</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="b3-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>Temp °F</label><input type="number" id="b3-tmp" placeholder="°F" step="0.1"></div><div class="ig"><label>Fire %</label><input type="number" id="b3-fire" placeholder="%" step="1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="b3-rof" data-val="R">R</button><button class="rb" data-rof="b3-rof" data-val="O">O</button><button class="rb" data-rof="b3-rof" data-val="F">F</button><input type="hidden" id="b3-rof" value=""></div></div></div></div>
+    <div class="sh w">B-4</div>
+    <div class="dr we"><span class="rl w70">B-4</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="b4-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>Temp °F</label><input type="number" id="b4-tmp" placeholder="°F" step="0.1"></div><div class="ig"><label>Fire %</label><input type="number" id="b4-fire" placeholder="%" step="1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="b4-rof" data-val="R">R</button><button class="rb" data-rof="b4-rof" data-val="O">O</button><button class="rb" data-rof="b4-rof" data-val="F">F</button><input type="hidden" id="b4-rof" value=""></div></div></div></div>
+    <div class="sh w">B-5</div>
+    <div class="dr we"><span class="rl w70">B-5</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="b5-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>Temp °F</label><input type="number" id="b5-tmp" placeholder="°F" step="0.1"></div><div class="ig"><label>Fire %</label><input type="number" id="b5-fire" placeholder="%" step="1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="b5-rof" data-val="R">R</button><button class="rb" data-rof="b5-rof" data-val="O">O</button><button class="rb" data-rof="b5-rof" data-val="F">F</button><input type="hidden" id="b5-rof" value=""></div></div></div></div>
+    <div class="sh w">B-6</div>
+    <div class="dr we"><span class="rl w70">B-6</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="b6-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>Temp °F</label><input type="number" id="b6-tmp" placeholder="°F" step="0.1"></div><div class="ig"><label>Fire %</label><input type="number" id="b6-fire" placeholder="%" step="1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="b6-rof" data-val="R">R</button><button class="rb" data-rof="b6-rof" data-val="O">O</button><button class="rb" data-rof="b6-rof" data-val="F">F</button><input type="hidden" id="b6-rof" value=""></div></div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="ch w">Feedwater Pumps</div>
+    <div class="sh w">FW Pump 1</div>
+    <div class="dr we"><span class="rl w90">FW Pump 1</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="fw1-psi" placeholder="PSI" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="fw1-rof" data-val="R">R</button><button class="rb" data-rof="fw1-rof" data-val="O">O</button><button class="rb" data-rof="fw1-rof" data-val="F">F</button><input type="hidden" id="fw1-rof" value=""></div></div></div></div>
+    <div class="sh w">FW Pump 2</div>
+    <div class="dr we"><span class="rl w90">FW Pump 2</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="fw2-psi" placeholder="PSI" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="fw2-rof" data-val="R">R</button><button class="rb" data-rof="fw2-rof" data-val="O">O</button><button class="rb" data-rof="fw2-rof" data-val="F">F</button><input type="hidden" id="fw2-rof" value=""></div></div></div></div>
+    <div class="sh w">FW Pump 3</div>
+    <div class="dr we"><span class="rl w90">FW Pump 3</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="fw3-psi" placeholder="PSI" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="fw3-rof" data-val="R">R</button><button class="rb" data-rof="fw3-rof" data-val="O">O</button><button class="rb" data-rof="fw3-rof" data-val="F">F</button><input type="hidden" id="fw3-rof" value=""></div></div></div></div>
+    <div class="sh w">FW Pump 4</div>
+    <div class="dr we"><span class="rl w90">FW Pump 4</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="fw4-psi" placeholder="PSI" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="fw4-rof" data-val="R">R</button><button class="rb" data-rof="fw4-rof" data-val="O">O</button><button class="rb" data-rof="fw4-rof" data-val="F">F</button><input type="hidden" id="fw4-rof" value=""></div></div></div></div>
+    <div class="sh w">FW Pump 5</div>
+    <div class="dr we"><span class="rl w90">FW Pump 5</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="fw5-psi" placeholder="PSI" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="fw5-rof" data-val="R">R</button><button class="rb" data-rof="fw5-rof" data-val="O">O</button><button class="rb" data-rof="fw5-rof" data-val="F">F</button><input type="hidden" id="fw5-rof" value=""></div></div></div></div>
+    <div class="sh w">FW Pump 6</div>
+    <div class="dr we"><span class="rl w90">FW Pump 6</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="fw6-psi" placeholder="PSI" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="fw6-rof" data-val="R">R</button><button class="rb" data-rof="fw6-rof" data-val="O">O</button><button class="rb" data-rof="fw6-rof" data-val="F">F</button><input type="hidden" id="fw6-rof" value=""></div></div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="ch w">Heating HX (HX-2, 3, 4, 5)</div>
+    <div class="spr w"><label>HX Setpoint (°F):</label><input type="number" id="hhx-sp" placeholder="°F" step="0.1"></div>
+    <div class="hxhdr w"><span>Zone</span><span>Supply Temp</span><span>Valve %</span><span>Run Pump</span><span>PSI</span><span>HZ</span><span>Amps</span></div>
+    <div class="hxr we"><div class="hxzone">HX-2<small>DHW</small></div><input type="number" id="hx2-tmp" placeholder="°F" step="0.1"><input type="number" id="hx2-vlv" placeholder="%" step="0.1" min="0" max="100"><select id="hx2-pmp"><option value="">-</option><option>A</option><option>B</option></select><input type="number" id="hx2-psi" placeholder="PSI" step="0.1"><input type="number" id="hx2-hz" placeholder="Hz" step="0.01"><input type="number" id="hx2-amp" placeholder="A" step="0.1"></div>
+    <div class="hxr we"><div class="hxzone">HX-3<small>&lt;20</small></div><input type="number" id="hx3-tmp" placeholder="°F" step="0.1"><input type="number" id="hx3-vlv" placeholder="%" step="0.1"><select id="hx3-pmp"><option value="">-</option><option>A</option><option>B</option></select><input type="number" id="hx3-psi" placeholder="PSI" step="0.1"><input type="number" id="hx3-hz" placeholder="Hz" step="0.01"><input type="number" id="hx3-amp" placeholder="A" step="0.1"></div>
+    <div class="hxr we"><div class="hxzone">HX-4<small>T1 &gt;20</small></div><input type="number" id="hx4-tmp" placeholder="°F" step="0.1"><input type="number" id="hx4-vlv" placeholder="%" step="0.1"><select id="hx4-pmp"><option value="">-</option><option>A</option><option>B</option></select><input type="number" id="hx4-psi" placeholder="PSI" step="0.1"><input type="number" id="hx4-hz" placeholder="Hz" step="0.01"><input type="number" id="hx4-amp" placeholder="A" step="0.1"></div>
+    <div class="hxr we"><div class="hxzone">HX-5<small>T2 &gt;20</small></div><input type="number" id="hx5-tmp" placeholder="°F" step="0.1"><input type="number" id="hx5-vlv" placeholder="%" step="0.1"><select id="hx5-pmp"><option value="">-</option><option>A</option><option>B</option></select><input type="number" id="hx5-psi" placeholder="PSI" step="0.1"><input type="number" id="hx5-hz" placeholder="Hz" step="0.01"><input type="number" id="hx5-amp" placeholder="A" step="0.1"></div>
+  </div>
+
+  <div class="card">
+    <div class="ch w">Heat Loop Pressures</div>
+    <div class="lhdr w"><span>Heat Loop PSI</span><input type="number" id="hl-psi" placeholder="PSI" step="0.1"></div>
+    <div class="sh w">Circ Pump A</div>
+    <div class="dr we"><span class="rl w90">Circ Pump A</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="cpa-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>HZ</label><input type="number" id="cpa-hz" placeholder="Hz" step="0.01"></div><div class="ig"><label>Amps</label><input type="number" id="cpa-amps" placeholder="A" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="cpa-rof" data-val="R">R</button><button class="rb" data-rof="cpa-rof" data-val="O">O</button><button class="rb" data-rof="cpa-rof" data-val="F">F</button><input type="hidden" id="cpa-rof" value=""></div></div></div></div>
+    <div class="sh w">Circ Pump B</div>
+    <div class="dr we"><span class="rl w90">Circ Pump B</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="cpb-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>HZ</label><input type="number" id="cpb-hz" placeholder="Hz" step="0.01"></div><div class="ig"><label>Amps</label><input type="number" id="cpb-amps" placeholder="A" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="cpb-rof" data-val="R">R</button><button class="rb" data-rof="cpb-rof" data-val="O">O</button><button class="rb" data-rof="cpb-rof" data-val="F">F</button><input type="hidden" id="cpb-rof" value=""></div></div></div></div>
+    <div class="sh w">Circ Pump C</div>
+    <div class="dr we"><span class="rl w90">Circ Pump C</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="cpc-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>HZ</label><input type="number" id="cpc-hz" placeholder="Hz" step="0.01"></div><div class="ig"><label>Amps</label><input type="number" id="cpc-amps" placeholder="A" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="cpc-rof" data-val="R">R</button><button class="rb" data-rof="cpc-rof" data-val="O">O</button><button class="rb" data-rof="cpc-rof" data-val="F">F</button><input type="hidden" id="cpc-rof" value=""></div></div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="ch w">Domestic Hot Water Tank</div>
+    <div class="sh w">Tank Readings</div>
+    <div class="sr we"><label>Tank Setpoint (°F)</label><input type="number" id="dhw-sp" placeholder="°F" step="0.1"></div>
+    <div class="sr we"><label>System Pressure</label><input type="number" id="dhw-sys" placeholder="PSI" step="0.1"></div>
+    <div class="sr we"><label>Suction Pressure</label><input type="number" id="dhw-suc" placeholder="PSI" step="0.1"></div>
+    <div class="sr we"><label>Tank Temperature (°F)</label><input type="number" id="dhw-tmp" placeholder="°F" step="0.1"></div>
+    <div class="sh w">Booster Pump 1</div>
+    <div class="dr we"><span class="rl w90">BP 1</span><div class="flds"><div class="ig"><label>HZ</label><input type="number" id="bp1-hz" placeholder="Hz" step="0.01"></div><div class="ig"><label>Amps</label><input type="number" id="bp1-amps" placeholder="A" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="bp1-rof" data-val="R">R</button><button class="rb" data-rof="bp1-rof" data-val="O">O</button><button class="rb" data-rof="bp1-rof" data-val="F">F</button><input type="hidden" id="bp1-rof" value=""></div></div></div></div>
+    <div class="sh w">Booster Pump 2</div>
+    <div class="dr we"><span class="rl w90">BP 2</span><div class="flds"><div class="ig"><label>HZ</label><input type="number" id="bp2-hz" placeholder="Hz" step="0.01"></div><div class="ig"><label>Amps</label><input type="number" id="bp2-amps" placeholder="A" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="bp2-rof" data-val="R">R</button><button class="rb" data-rof="bp2-rof" data-val="O">O</button><button class="rb" data-rof="bp2-rof" data-val="F">F</button><input type="hidden" id="bp2-rof" value=""></div></div></div></div>
+    <div class="sh w">Booster Pump 3</div>
+    <div class="dr we"><span class="rl w90">BP 3</span><div class="flds"><div class="ig"><label>HZ</label><input type="number" id="bp3-hz" placeholder="Hz" step="0.01"></div><div class="ig"><label>Amps</label><input type="number" id="bp3-amps" placeholder="A" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="bp3-rof" data-val="R">R</button><button class="rb" data-rof="bp3-rof" data-val="O">O</button><button class="rb" data-rof="bp3-rof" data-val="F">F</button><input type="hidden" id="bp3-rof" value=""></div></div></div></div>
+  </div>
+</div>
+
+<!-- SHARED PAGE -->
+<div class="page" id="p-shared">
+  <div class="card">
+    <div class="ch t">HRC — Heat Recovery Chiller</div>
+    <div class="sh">Status / Demand / Mode</div>
+    <div class="dr te"><div class="flds"><div class="ig"><label>Status %</label><input type="number" id="hrc-stat" placeholder="%" step="1" min="0" max="100"></div><div class="ig"><label>Demand %</label><input type="number" id="hrc-dem" placeholder="%" step="1" min="0" max="100"></div><div class="ig"><label>Mode</label><input type="text" id="hrc-mode" placeholder="Htg/Clg"></div></div></div>
+    <div class="sh">Entering / Leaving Chilled Water</div>
+    <div class="dr te"><div class="flds"><div class="ig"><label>Ent. CW °F</label><input type="number" id="hrc-ecw" placeholder="°F" step="0.1"></div><div class="ig"><label>Lvg. CW °F</label><input type="number" id="hrc-lcw" placeholder="°F" step="0.1"></div></div></div>
+    <div class="sh">Entering / Leaving Heating Water</div>
+    <div class="dr te"><div class="flds"><div class="ig"><label>Ent. HW °F</label><input type="number" id="hrc-ehw" placeholder="°F" step="0.1"></div><div class="ig"><label>Lvg. HW °F</label><input type="number" id="hrc-lhw" placeholder="°F" step="0.1"></div></div></div>
+  </div>
+  <div class="card">
+    <div class="ch t">HRC Pumps</div>
+    <div class="sh">HRC Pump 1</div>
+    <div class="dr te"><span class="rl w90">HRC Pump 1</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="hp1-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>HZ</label><input type="number" id="hp1-hz" placeholder="Hz" step="0.01"></div><div class="ig"><label>Amps</label><input type="number" id="hp1-amps" placeholder="A" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="hp1-rof" data-val="R">R</button><button class="rb" data-rof="hp1-rof" data-val="O">O</button><button class="rb" data-rof="hp1-rof" data-val="F">F</button><input type="hidden" id="hp1-rof" value=""></div></div></div></div>
+    <div class="sh">HRC Pump 2</div>
+    <div class="dr te"><span class="rl w90">HRC Pump 2</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="hp2-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>HZ</label><input type="number" id="hp2-hz" placeholder="Hz" step="0.01"></div><div class="ig"><label>Amps</label><input type="number" id="hp2-amps" placeholder="A" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="hp2-rof" data-val="R">R</button><button class="rb" data-rof="hp2-rof" data-val="O">O</button><button class="rb" data-rof="hp2-rof" data-val="F">F</button><input type="hidden" id="hp2-rof" value=""></div></div></div></div>
+    <div class="sh">HRC Pump 4</div>
+    <div class="dr te"><span class="rl w90">HRC Pump 4</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="hp4-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>HZ</label><input type="number" id="hp4-hz" placeholder="Hz" step="0.01"></div><div class="ig"><label>Amps</label><input type="number" id="hp4-amps" placeholder="A" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="hp4-rof" data-val="R">R</button><button class="rb" data-rof="hp4-rof" data-val="O">O</button><button class="rb" data-rof="hp4-rof" data-val="F">F</button><input type="hidden" id="hp4-rof" value=""></div></div></div></div>
+    <div class="sh">HRC Pump 5</div>
+    <div class="dr te"><span class="rl w90">HRC Pump 5</span><div class="flds"><div class="ig"><label>PSI</label><input type="number" id="hp5-psi" placeholder="PSI" step="0.1"></div><div class="ig"><label>HZ</label><input type="number" id="hp5-hz" placeholder="Hz" step="0.01"></div><div class="ig"><label>Amps</label><input type="number" id="hp5-amps" placeholder="A" step="0.1"></div><div class="rg"><label>Status</label><div class="rb-row"><button class="rb" data-rof="hp5-rof" data-val="R">R</button><button class="rb" data-rof="hp5-rof" data-val="O">O</button><button class="rb" data-rof="hp5-rof" data-val="F">F</button><input type="hidden" id="hp5-rof" value=""></div></div></div></div>
+  </div>
+</div>
+
+<!-- NOTES PAGE -->
+<div class="page" id="p-notes">
+  <div class="card">
+    <div class="ch t">Notes / Alarms / Actions Taken</div>
+    <div class="nwrap"><textarea id="notes" placeholder="Record any alarms, faults, unusual readings, actions taken, or observations here..."></textarea></div>
+  </div>
+  <div class="card">
+    <div class="ch t">Round Summary</div>
+    <div class="sumbox" id="sumbox">Switch to this tab after filling in data to see a pre-export summary.</div>
+  </div>
+</div>
+
+<!-- HISTORY PAGE -->
+<div class="page" id="p-hist">
+  <div class="card">
+    <div class="ch t">Round history</div>
+    <div class="hf">
+      <select id="h-round" aria-label="Round"><option value="">All rounds</option><option value="1">Round 1</option><option value="2">Round 2</option></select>
+      <input type="text" id="h-op" placeholder="Operator" aria-label="Operator">
+      <label class="chk"><input type="checkbox" id="h-pend"> Pending only</label>
+    </div>
+    <div class="hstat" id="hstat"></div>
+    <div id="hlist"></div>
+    <div class="hact">
+      <button class="btn btn-s" id="btn-hcopy">📋 Copy report</button>
+      <button class="btn btn-s" id="btn-hrefresh">↻ Refresh</button>
+    </div>
+  </div>
+</div>
+
+<div class="bot">
+  <button class="btn btn-s" id="btn-save">💾 Draft</button>
+  <button class="btn btn-s" id="btn-both" title="Download the JSON and print the roundsheet PDF">📄 Export</button>
+  <button class="btn btn-e btn-go" id="btn-submit">✅ Submit round</button>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<div class="modal" id="tokmodal" hidden>
+  <div class="mbox" role="dialog" aria-modal="true" aria-labelledby="tok-h">
+    <h2 id="tok-h">Sync token</h2>
+    <p id="tok-state"></p>
+    <pre class="diag" id="diag"></pre>
+    <label for="tok-in">Paste the access token</label>
+    <input type="password" id="tok-in" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <div class="mrow">
+      <button class="btn btn-e" id="tok-save">Save token</button>
+      <button class="btn btn-s" id="tok-clear">Remove token</button>
+      <button class="btn btn-s" id="tok-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== ERROR REPORTER (a crash on the iPad must be visible, not silent) =====
+window.__errs=[];
+function __showErr(msg){window.__errs.push(msg);var b=document.getElementById('errbar');if(b){b.hidden=false;b.textContent='⚠ App error: '+msg+'. Please tell Claude this exact text.';}}
+window.addEventListener('error',function(e){__showErr((e.message||'error')+' ('+String(e.filename||'').split('/').pop()+':'+e.lineno+')');});
+window.addEventListener('unhandledrejection',function(e){__showErr('Promise: '+((e.reason&&e.reason.message)||e.reason));});
+// ===== CONFIG =====
+var GH_REPO='Lscapo/District-Energy-Plant-Data', GH_BRANCH='data';
+var GH_TOKEN=''; try{GH_TOKEN=localStorage.getItem('oslu-token')||'';}catch(e){}
+// ===== GH CORE BEGIN (shared by field app + dashboard) =====
+// The page defines GH_REPO ('owner/repo'), GH_BRANCH ('data') and GH_TOKEN (string, may be empty).
+// Every write follows one rule: fetch the CURRENT remote file, apply a small ID-based change
+// to that fresh copy, PUT with the SHA from that same fetch. Local copies are never a write base.
+function ghUrl(file){return 'https://api.github.com/repos/'+GH_REPO+'/contents/'+file+'?ref='+GH_BRANCH;}
+function ghPutUrl(file){return 'https://api.github.com/repos/'+GH_REPO+'/contents/'+file;}
+function monthFile(dateIso){var m=/^(\d{4})-(\d{2})-\d{2}$/.exec(String(dateIso||''));return m?'data-'+m[1]+'-'+m[2]+'.json':null;}
+function b64ToUtf8(b){
+  var bin=atob(String(b).replace(/\s/g,''));
+  var bytes=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+  return new TextDecoder('utf-8').decode(bytes);
+}
+function utf8ToB64(s){return btoa(unescape(encodeURIComponent(s)));}
+function stripLocal(e){var c={};for(var k in e){if(k!=='synced')c[k]=e[k];}return c;}
+
+// One timer covers the whole request INCLUDING reading the body (a stalled body hangs forever otherwise)
+async function ghRequest(url,opts,ms){
+  var c=new AbortController();
+  var t=setTimeout(function(){c.abort();},ms);
+  try{
+    var r=await fetch(url,Object.assign({cache:'no-store',signal:c.signal},opts));
+    var text=await r.text();
+    return{status:r.status,ok:r.ok,text:text};
+  }finally{clearTimeout(t);}
+}
+function ghHdr(accept,json){
+  var h={'Authorization':'token '+GH_TOKEN,'Accept':accept||'application/vnd.github.v3+json'};
+  if(json)h['Content-Type']='application/json';
+  return h;
+}
+
+async function ghFetchRemote(file){
+  if(!GH_TOKEN)return{ok:false,reason:'notoken'};
+  try{
+    var r=await ghRequest(ghUrl(file),{headers:ghHdr()},5000);
+    if(r.status===404)return{ok:true,list:[],sha:null,missing:true};
+    if(r.status===401)return{ok:false,reason:'auth',status:401};
+    if(!r.ok)return{ok:false,reason:'http',status:r.status};
+    var j=JSON.parse(r.text);
+    var text;
+    if(j.content&&j.encoding!=='none'){
+      text=b64ToUtf8(j.content);
+    }else if(j.size>0){
+      // Contents API returns EMPTY content for files over 1 MB -- fetch the raw body instead
+      var rr=await ghRequest(ghUrl(file),{headers:ghHdr('application/vnd.github.raw+json')},12000);
+      if(!rr.ok)return{ok:false,reason:'http',status:rr.status};
+      text=rr.text;
+    }else{text='[]';}
+    var list=JSON.parse(text);
+    if(!Array.isArray(list))return{ok:false,reason:'format'};
+    if(j.size>10&&list.length===0)return{ok:false,reason:'format'}; // never trust an "empty" read of a non-empty file
+    return{ok:true,list:list,sha:j.sha,size:j.size};
+  }catch(e){return{ok:false,reason:'network',error:String(e)};}
+}
+
+async function ghPut(file,list,sha,message){
+  try{
+    var body={message:message,content:utf8ToB64(JSON.stringify(list.map(stripLocal))),branch:GH_BRANCH};
+    if(sha)body.sha=sha;
+    var w=await ghRequest(ghPutUrl(file),{method:'PUT',headers:ghHdr(null,true),body:JSON.stringify(body)},20000);
+    if(w.ok)return{ok:true};
+    return{ok:false,status:w.status};
+  }catch(e){return{ok:false,error:String(e)};} // outcome unknown -- the next attempt re-checks by ID
+}
+
+// mutator(remoteList) -> null (nothing to change) or {list, added, removed}
+async function ghMutate(file,mutator,message){
+  if(!GH_TOKEN)return{ok:false,reason:'notoken'};
+  for(var attempt=0;attempt<3;attempt++){
+    var rem=await ghFetchRemote(file);
+    if(!rem.ok)return{ok:false,reason:rem.reason,status:rem.status};
+    var plan=mutator(rem.list);
+    if(!plan)return{ok:true,changed:false,list:rem.list};
+    // Safety guard: the write may only add/remove exactly what the mutator says it does
+    var keep=new Set(plan.list),lost=0;
+    for(var i=0;i<rem.list.length;i++){if(!keep.has(rem.list[i]))lost++;}
+    var added=plan.list.length-(rem.list.length-lost);
+    if(lost!==(plan.removed||0)||added!==(plan.added||0))return{ok:false,reason:'guard'};
+    var w=await ghPut(file,plan.list,rem.sha,message);
+    if(w.ok)return{ok:true,changed:true,list:plan.list};
+    if(w.status===409||w.status===422)continue; // someone wrote first: re-fetch, re-apply, retry
+    if(w.status===401)return{ok:false,reason:'auth',status:401};
+    return{ok:false,reason:w.status?'http':'network',status:w.status};
+  }
+  return{ok:false,reason:'conflict'};
+}
+
+// Delete exactly one record by ID from the FRESH remote copy. If the ID is absent nothing is written;
+// if it matches more than one record (should never happen) the guard aborts the write.
+async function ghDeleteById(file,id){
+  return ghMutate(file,function(remote){
+    var out=remote.filter(function(r){return!(r&&r.id===id);});
+    var gone=remote.length-out.length;
+    if(gone===0)return null;
+    return{list:out,added:0,removed:1}; // guard compares this claim (1) with what really disappears
+  },'Delete round '+id);
+}
+
+// Plain-language text for every failure reason (never a generic "offline")
+function ghExplain(r){
+  if(!r||r.ok)return '';
+  if(r.reason==='notoken')return 'No token set';
+  if(r.reason==='auth')return 'Token rejected (401). Tap Token to change it';
+  if(r.reason==='http'){
+    if(r.status===403)return 'Token lacks permission, or GitHub rate limit reached (403)';
+    if(r.status===404)return 'Data repo or branch not found, or token has no access to it (404)';
+    return 'GitHub returned an error ('+r.status+')';
+  }
+  if(r.reason==='format')return 'Data file has a format problem. Nothing was written';
+  if(r.reason==='guard')return 'Safety check blocked the write. Nothing was written';
+  if(r.reason==='conflict')return 'Another device was writing. Will retry';
+  if(r.reason==='network')return 'No signal, or the request timed out';
+  return 'Sync problem ('+r.reason+')';
+}
+// ===== GH CORE END =====
+
+// ===== RULES BEGIN (shared by field app + dashboard) =====
+function esc(s){return String(s===null||s===undefined?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function dv(x){return(x===null||x===undefined||x==='')?'—':String(x);}   // 0 is a real value, never "empty"
+function dvs(x){return esc(dv(x));}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+// FLAG RULES. These are only the starting values; the dashboard's Settings tab edits them and saves them to
+// limits.json on the data branch, and both apps then use that file. Nothing here is a compliance claim.
+//  range rule: {id,kind:'range',label,path,min,max,unit,on}      min and/or max may be null (one-sided)
+//  delta rule: {id,kind:'delta',label,path,sp,below,above,unit,on}  flags when (reading - setpoint) is more than
+//              'below' under or 'above' over the setpoint. Blank (null) = not flagged yet; the difference is still shown.
+// 'path' matches the saved record; [*] matches any unit/pump/zone name. Units that are Off (status O) are skipped for delta rules.
+function R(id,label,path,min,max){return{id:id,kind:'range',label:label,path:path,min:min,max:max,unit:'%',on:true};}
+function D(id,label,path,sp){return{id:id,kind:'delta',label:label,path:path,sp:sp,below:null,above:null,unit:'°F',on:true};}
+var DEFAULT_RULES=[
+  {id:'r-ct-ph',kind:'range',label:'Cooling tower pH',path:'cooling_tower.ph',min:7.0,max:8.5,unit:'',on:true},
+  R('r-ch-pct','Chiller % full power','chiller_plant.chillers[*].pct_full_power',0,100),
+  R('r-chx-valve','Cooling HX valve %','cooling_hx.zones[*].valve_pct',0,100),
+  R('r-hhx-valve','Heating HX valve %','heating_hx.zones[*].valve_pct',0,100),
+  R('r-b-fire','Boiler fire rate %','boiler_plant.boilers[*].fire_rate',0,100),
+  R('r-hrc-status','HRC status %','hrc.status',0,100),
+  R('r-hrc-demand','HRC demand %','hrc.demand',0,100),
+  D('d-hx2','HX-2 delivery vs setpoint','heating_hx.zones[HX-2].supply_temp','heating_hx.hx_setpoint'),
+  D('d-hx3','HX-3 delivery vs setpoint','heating_hx.zones[HX-3].supply_temp','heating_hx.hx_setpoint'),
+  D('d-hx4','HX-4 delivery vs setpoint','heating_hx.zones[HX-4].supply_temp','heating_hx.hx_setpoint'),
+  D('d-hx5','HX-5 delivery vs setpoint','heating_hx.zones[HX-5].supply_temp','heating_hx.hx_setpoint'),
+  D('d-hx7','HX-7 delivery vs setpoint','cooling_hx.zones[HX-7].supply_temp','cooling_hx.hx_setpoint'),
+  D('d-hx8','HX-8 delivery vs setpoint','cooling_hx.zones[HX-8].supply_temp','cooling_hx.hx_setpoint'),
+  D('d-hx9','HX-9 delivery vs setpoint','cooling_hx.zones[HX-9].supply_temp','cooling_hx.hx_setpoint'),
+  D('d-ch','Chiller supply vs setpoint','chiller_plant.chillers[*].supply_temp','chiller_plant.cooling_setpoint'),
+  D('d-boiler','Boiler temp vs setpoint','boiler_plant.boilers[*].temp','boiler_plant.heating_setpoint'),
+  D('d-ct','Tower return vs setpoint','cooling_tower.tower_return_temp','cooling_tower.ct_setpoint'),
+  D('d-dhw','DHW tank vs setpoint','dhw_tank.tank_temperature','dhw_tank.tank_setpoint')
+];
+var RULES=clone(DEFAULT_RULES);
+function validRule(r){return!!(r&&typeof r.id==='string'&&(r.kind==='range'||r.kind==='delta')&&typeof r.path==='string'&&(r.kind==='range'||typeof r.sp==='string'));}
+// an empty or unreadable list means "use the starting values"
+function setRules(list){var ok=Array.isArray(list)?list.filter(validRule):[];RULES=ok.length?clone(ok):clone(DEFAULT_RULES);return RULES;}
+
+// 'low' / 'high' / null. Boundaries are inclusive (the limit itself is fine); 0 is a real reading.
+function checkRange(rule,v){
+  if(typeof v!=='number'||isNaN(v))return null;
+  if(typeof rule.min==='number'&&v<rule.min)return'low';
+  if(typeof rule.max==='number'&&v>rule.max)return'high';
+  return null;
+}
+function checkDelta(rule,actual,sp){
+  if(typeof actual!=='number'||typeof sp!=='number'||isNaN(actual)||isNaN(sp))return null;
+  var d=Math.round((actual-sp)*1000)/1000;
+  if(typeof rule.below==='number'&&d<-rule.below)return'below';
+  if(typeof rule.above==='number'&&d>rule.above)return'above';
+  return null;
+}
+function boundsText(r){
+  var hasMin=typeof r.min==='number',hasMax=typeof r.max==='number',u=r.unit?' '+r.unit:'';
+  if(hasMin&&hasMax)return r.min+'–'+r.max+u;
+  if(hasMax)return'up to '+r.max+u;
+  if(hasMin)return'at least '+r.min+u;
+  return'no limit set';
+}
+function ruleRegex(path){
+  var parts=path.split('[*]').map(function(p){return p.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');});
+  return new RegExp('^'+parts.join('\\[[^\\]]*\\]')+'$');
+}
+function flattenRec(o,prefix,out){
+  out=out||[];prefix=prefix||'';
+  if(Array.isArray(o)){
+    o.forEach(function(it,i){var nm=(it&&(it.unit||it.pump||it.zone))||String(i);flattenRec(it,prefix+'['+nm+']',out);});
+    return out;
+  }
+  if(o&&typeof o==='object'){for(var k in o){flattenRec(o[k],prefix?(prefix+'.'+k):k,out);}return out;}
+  out.push({path:prefix,value:o});
+  return out;
+}
+function humanPath(path){
+  var m=/\[([^\]]*)\][^\[]*$/.exec(path);
+  var key=path.split('.').pop().replace(/_/g,' ');
+  if(m)return m[1]+' '+key;
+  var seg=path.split('.');
+  return seg.length>1?(seg[0].replace(/_/g,' ')+' '+key):key;
+}
+// Structured flags for one record: [{type:'fault'|'range'|'delta', path, text}]
+function flagList(rec,rules){
+  rules=rules||RULES;
+  var flat=flattenRec(rec,'',[]),map={},out=[];
+  flat.forEach(function(f){map[f.path]=f.value;});
+  flat.forEach(function(f){if(/\.status$/.test(f.path)&&f.value==='F')out.push({type:'fault',path:f.path,text:humanPath(f.path)+': Fault'});});
+  rules.forEach(function(rule){
+    if(rule.on===false)return;
+    var re=ruleRegex(rule.path);
+    flat.forEach(function(f){
+      if(!re.test(f.path))return;
+      var u=rule.unit?(' '+rule.unit):'';
+      if(rule.kind==='range'){
+        var s=checkRange(rule,f.value);
+        if(s)out.push({type:'range',path:f.path,text:humanPath(f.path)+' '+f.value+u+' ('+(s==='low'?'below':'above')+' limit '+boundsText(rule)+')'});
+      }else{
+        var statusPath=f.path.slice(0,f.path.lastIndexOf('.'))+'.status';
+        if(map[statusPath]==='O')return;                     // a unit that is Off is not delivering
+        var sp=map[rule.sp],t=checkDelta(rule,f.value,sp);
+        if(t){var diff=Math.abs(Math.round((f.value-sp)*10)/10);
+          out.push({type:'delta',path:f.path,text:humanPath(f.path)+' '+f.value+u+' is '+diff+u+' '+t+' setpoint '+sp+' (allowed '+(t==='below'?rule.below:rule.above)+u+' '+t+')'});}
+      }
+    });
+  });
+  return out;
+}
+function recordFlags(rec){return flagList(rec).map(function(f){return f.text;});}
+// ===== RULES END =====
+
+// ===== LOGIC BEGIN (record building, outbox, sync; no DOM) =====
+var APP_VERSION='v2.2 - 2026-10-18';
+var OB_PREFIX='oslu-outbox:';
+
+function newRecordId(dateCompact,round){
+  var r='';
+  try{var a=new Uint32Array(2);crypto.getRandomValues(a);r=(a[0].toString(36)+a[1].toString(36)).slice(0,7);}
+  catch(e){r=Math.random().toString(36).slice(2,9);}
+  return'pr-'+dateCompact+'-R'+round+'-'+r;
+}
+// d = the object collect() returns (meta.date is YYYYMMDD there). Never stores UI state.
+function buildRecord(d,version,nowIso){
+  var rec=JSON.parse(JSON.stringify(d));
+  var ds=String(d.meta.date||'');
+  var iso=/^\d{8}$/.test(ds)?ds.slice(0,4)+'-'+ds.slice(4,6)+'-'+ds.slice(6,8):ds;
+  rec.meta.date=iso;
+  delete rec.meta.filename;
+  var out={schema:1,id:newRecordId(ds,rec.meta.round),recorded_at:nowIso,app_version:version};
+  for(var k in rec)out[k]=rec[k];
+  return out;
+}
+
+// ---- outbox: one localStorage key per record, written BEFORE any network call ----
+function obList(){
+  var out=[];
+  try{
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);
+      if(k&&k.indexOf(OB_PREFIX)===0){
+        try{var r=JSON.parse(localStorage.getItem(k));if(r&&r.id)out.push(r);}catch(e){}
+      }
+    }
+  }catch(e){}
+  out.sort(function(a,b){return String(a.recorded_at).localeCompare(String(b.recorded_at));});
+  return out;
+}
+function obAdd(rec){try{localStorage.setItem(OB_PREFIX+rec.id,JSON.stringify(stripLocal(rec)));return true;}catch(e){return false;}}
+function obRemove(id){try{localStorage.removeItem(OB_PREFIX+id);}catch(e){}}
+
+// One batched fetch-merge-PUT per month file. Dedupe by record ID only.
+async function doSync(){
+  var items=obList();
+  if(!items.length)return{ok:true,synced:0,pending:0};
+  if(!GH_TOKEN)return{ok:false,reason:'notoken',synced:0,pending:items.length};
+  var groups={},bad=0;
+  items.forEach(function(r){var f=monthFile(r.meta&&r.meta.date);if(!f){bad++;return;}(groups[f]=groups[f]||[]).push(r);});
+  var synced=0,fail=null;
+  for(var f in groups){
+    var batch=groups[f];
+    var res=await ghMutate(f,function(remote){
+      var ids=new Set();
+      for(var i=0;i<remote.length;i++)ids.add(remote[i]&&remote[i].id);
+      var add=batch.filter(function(r){return!ids.has(r.id);}).map(stripLocal);
+      if(!add.length)return null; // every ID is already on the server: just clear the outbox
+      return{list:remote.concat(add),added:add.length,removed:0};
+    },'Add '+batch.length+' plant round'+(batch.length===1?'':'s'));
+    if(res.ok){batch.forEach(function(r){obRemove(r.id);synced++;});}
+    else{fail=res;break;}
+  }
+  if(fail)return{ok:false,reason:fail.reason,status:fail.status,synced:synced,pending:obList().length};
+  if(bad)return{ok:false,reason:'format',synced:synced,pending:obList().length};
+  return{ok:true,synced:synced,pending:obList().length};
+}
+// Single-flight: two syncs never overlap; a call made during a sync triggers one more pass afterwards
+var syncRun=null,syncAgain=false;
+function syncOutbox(){
+  if(syncRun){syncAgain=true;return syncRun;}
+  syncRun=(async function(){
+    var res;
+    try{do{syncAgain=false;res=await doSync();}while(syncAgain&&res.ok);}
+    finally{syncRun=null;}
+    return res;
+  })();
+  return syncRun;
+}
+
+// history list = server records (synced) + outbox records the server doesn't have yet (pending)
+function buildDisplay(remote,outbox){
+  var seen={},out=[];
+  (remote||[]).forEach(function(r){seen[r.id]=1;out.push(Object.assign({},r,{synced:true}));});
+  (outbox||[]).forEach(function(r){if(seen[r.id])return;out.push(Object.assign({},r,{synced:false}));});
+  out.sort(function(a,b){return String(b.recorded_at).localeCompare(String(a.recorded_at));});
+  return out;
+}
+function recordSummaryText(rec){
+  var m=rec.meta||{};
+  var d=m.date?m.date.slice(5,7)+'/'+m.date.slice(8,10)+'/'+m.date.slice(0,4):'—';
+  var run=[],bl=(rec.boiler_plant&&rec.boiler_plant.boilers)||[];
+  bl.forEach(function(b){if(b.status==='R')run.push(b.unit);});
+  var ch=(rec.chiller_plant&&rec.chiller_plant.chillers)||[];
+  var lines=[];
+  lines.push(d+'  Round '+dv(m.round)+'  '+dv(m.time)+'  Operator: '+dv(m.operator)+(rec.synced===false?'  [pending sync]':''));
+  lines.push('OSA '+dv(m.osa_temp)+'°F  Shift: '+dv(m.shift));
+  lines.push('Boilers running: '+(run.length?run.join(', '):'none')+'  |  '+ch.map(function(c){return c.unit+' '+dv(c.supply_temp)+'°F '+dv(c.pct_full_power)+'%';}).join('  '));
+  var ct=rec.cooling_tower||{},h=rec.hrc||{};
+  lines.push('Loops PSI: cool '+dv(rec.cool_loop&&rec.cool_loop.cool_loop_psi)+', heat '+dv(rec.heat_loop&&rec.heat_loop.heat_loop_psi)+'  |  CT pH '+dv(ct.ph)+', ORP '+dv(ct.orp_mv)+' mV  |  HRC '+dv(h.status)+'%, mode '+dv(h.mode));
+  var fl=recordFlags(rec);
+  lines.push('Flags: '+(fl.length?fl.join('; '):'none'));
+  if(rec.notes)lines.push('Notes: '+rec.notes);
+  return lines.join('\n');
+}
+// ===== LOGIC END =====
+</script>
+
+<script>
+(function() {
+  "use strict";
+
+  // ── TABS ──────────────────────────────────────────────────────────────────
+  var tabBar = document.getElementById('tabs');
+  tabBar.addEventListener('click', function(e) {
+    var btn = e.target;
+    if (btn.tagName !== 'BUTTON') return;
+    var target = btn.getAttribute('data-target');
+    var cls = btn.getAttribute('data-cls');
+    if (!target) return;
+
+    var pages = document.querySelectorAll('.page');
+    for (var i = 0; i < pages.length; i++) pages[i].classList.remove('act');
+    var tabs = document.querySelectorAll('.tab');
+    for (var i = 0; i < tabs.length; i++) tabs[i].className = 'tab';
+
+    document.getElementById('p-' + target).classList.add('act');
+    btn.className = 'tab ' + cls;
+    window.scrollTo(0, 0);
+    if (target === 'notes') buildSummary();
+    if (target === 'hist') { renderHistory(); refreshHistory(); }
+  });
+
+  // ── R/O/F BUTTONS ─────────────────────────────────────────────────────────
+  document.body.addEventListener('click', function(e) {
+    var btn = e.target;
+    if (!btn.classList.contains('rb')) return;
+
+    var rofId = btn.getAttribute('data-rof');
+    var val = btn.getAttribute('data-val');
+    if (!rofId || !val) return;
+
+    var hidden = document.getElementById(rofId);
+    if (!hidden) return;
+
+    // Clear all buttons in same rb-row
+    var row = btn.parentNode;
+    var siblings = row.querySelectorAll('.rb');
+    for (var i = 0; i < siblings.length; i++) {
+      siblings[i].className = 'rb';
+    }
+
+    // Toggle on/off
+    if (hidden.value === val) {
+      hidden.value = '';
+    } else {
+      hidden.value = val;
+      if (val === 'R') btn.className = 'rb ron';
+      else if (val === 'O') btn.className = 'rb oon';
+      else btn.className = 'rb fon';
+    }
+    upd();
+  });
+
+  // ── ROUND SELECTOR ────────────────────────────────────────────────────────
+  document.getElementById('m-round').addEventListener('change', function() {
+    document.getElementById('rpill').textContent = 'ROUND ' + this.value;
+  });
+
+  // ── PROGRESS ──────────────────────────────────────────────────────────────
+  function upd() {
+    var inputs = document.querySelectorAll('.meta input, .meta select, .page:not(#p-hist) input[type=number], .page:not(#p-hist) input[type=text], .page:not(#p-hist) select');
+    var total = 0, filled = 0;
+    for (var i = 0; i < inputs.length; i++) {
+      var el = inputs[i];
+      if (el.type === 'hidden') continue;
+      total++;
+      if (el.value && el.value.trim() !== '' && el.value !== '-') filled++;
+    }
+    var pct = total > 0 ? Math.round(filled / total * 100) : 0;
+    document.getElementById('pfill').style.width = pct + '%';
+    document.getElementById('ptxt').textContent = filled + ' / ' + total + ' fields';
+  }
+
+  // Listen for all input changes via event delegation
+  document.body.addEventListener('input', upd);
+  document.body.addEventListener('change', upd);
+
+  // ── COLLECT DATA ──────────────────────────────────────────────────────────
+  function g(id) {
+    var el = document.getElementById(id);
+    if (!el || el.value === '' || el.value === '-') return null;
+    if (el.type === 'number') { var n = parseFloat(el.value); return isFinite(n) ? n : null; } // numbers are stored as numbers; 0 stays 0
+    return el.value;
+  }
+
+  function collect() {
+    var date = (g('m-date') || '').replace(/-/g, '');
+    var rnd = g('m-round') || '1';
+    return {
+      meta: { date: date, filename: 'OSLU_DE_PlantRound_' + date + '_R' + rnd,
+        round: parseInt(rnd), time: g('m-time'), operator: g('m-op'),
+        osa_temp: g('m-osa'), shift: g('m-shift') },
+      chiller_plant: { cooling_setpoint: g('ch-sp'), chillers: [
+        { unit:'Ch-1', supply_temp:g('ch1-tmp'), pct_full_power:g('ch1-pct'), status:g('ch1-rof') },
+        { unit:'Ch-2', supply_temp:g('ch2-tmp'), pct_full_power:g('ch2-pct'), status:g('ch2-rof') }] },
+      condenser_water_pumps: [
+        { pump:'CW Pump 1', psi:g('cw1-psi'), hz:g('cw1-hz'), amps:g('cw1-amps'), status:g('cw1-rof') },
+        { pump:'CW Pump 2', psi:g('cw2-psi'), hz:g('cw2-hz'), amps:g('cw2-amps'), status:g('cw2-rof') },
+        { pump:'CW Pump 3', psi:g('cw3-psi'), hz:g('cw3-hz'), amps:g('cw3-amps'), status:g('cw3-rof') }],
+      cooling_hx: { hx_setpoint:g('chx-sp'), zones: [
+        { zone:'HX-7', supply_temp:g('hx7-tmp'), valve_pct:g('hx7-vlv'), running_pump:g('hx7-pmp'), psi:g('hx7-psi'), hz:g('hx7-hz'), amps:g('hx7-amp') },
+        { zone:'HX-8', supply_temp:g('hx8-tmp'), valve_pct:g('hx8-vlv'), running_pump:g('hx8-pmp'), psi:g('hx8-psi'), hz:g('hx8-hz'), amps:g('hx8-amp') },
+        { zone:'HX-9', supply_temp:g('hx9-tmp'), valve_pct:g('hx9-vlv'), running_pump:g('hx9-pmp'), psi:g('hx9-psi'), hz:g('hx9-hz'), amps:g('hx9-amp') }] },
+      cool_loop: { cool_loop_psi:g('cl-psi'), circ_pumps: [
+        { pump:'Circ Pump 1', psi:g('cp1-psi'), hz:g('cp1-hz'), amps:g('cp1-amps'), status:g('cp1-rof') },
+        { pump:'Circ Pump 2', psi:g('cp2-psi'), hz:g('cp2-hz'), amps:g('cp2-amps'), status:g('cp2-rof') },
+        { pump:'Circ Pump 3', psi:g('cp3-psi'), hz:g('cp3-hz'), amps:g('cp3-amps'), status:g('cp3-rof') }] },
+      cooling_tower: { lead_tower:g('ct-lead'), ct_setpoint:g('ct-sp'), tower_return_temp:g('ct-ret'),
+        chem_feeder_status:g('ct-chem'), ph:g('ct-ph'), orp_mv:g('ct-orp'),
+        temperature:g('ct-tmp'), conductivity:g('ct-cond'),
+        basket_strainer_1_psi:g('ct-bs1'), basket_strainer_2_psi:g('ct-bs2') },
+      boiler_plant: { heating_setpoint:g('b-sp'), boilers: [
+        { unit:'B-1', psi:g('b1-psi'), temp:g('b1-tmp'), fire_rate:g('b1-fire'), status:g('b1-rof') },
+        { unit:'B-2', psi:g('b2-psi'), temp:g('b2-tmp'), fire_rate:g('b2-fire'), status:g('b2-rof') },
+        { unit:'B-3', psi:g('b3-psi'), temp:g('b3-tmp'), fire_rate:g('b3-fire'), status:g('b3-rof') },
+        { unit:'B-4', psi:g('b4-psi'), temp:g('b4-tmp'), fire_rate:g('b4-fire'), status:g('b4-rof') },
+        { unit:'B-5', psi:g('b5-psi'), temp:g('b5-tmp'), fire_rate:g('b5-fire'), status:g('b5-rof') },
+        { unit:'B-6', psi:g('b6-psi'), temp:g('b6-tmp'), fire_rate:g('b6-fire'), status:g('b6-rof') }] },
+      feedwater_pumps: [
+        { pump:'FW Pump 1', psi:g('fw1-psi'), status:g('fw1-rof') },
+        { pump:'FW Pump 2', psi:g('fw2-psi'), status:g('fw2-rof') },
+        { pump:'FW Pump 3', psi:g('fw3-psi'), status:g('fw3-rof') },
+        { pump:'FW Pump 4', psi:g('fw4-psi'), status:g('fw4-rof') },
+        { pump:'FW Pump 5', psi:g('fw5-psi'), status:g('fw5-rof') },
+        { pump:'FW Pump 6', psi:g('fw6-psi'), status:g('fw6-rof') }],
+      heating_hx: { hx_setpoint:g('hhx-sp'), zones: [
+        { zone:'HX-2', supply_temp:g('hx2-tmp'), valve_pct:g('hx2-vlv'), running_pump:g('hx2-pmp'), psi:g('hx2-psi'), hz:g('hx2-hz'), amps:g('hx2-amp') },
+        { zone:'HX-3', supply_temp:g('hx3-tmp'), valve_pct:g('hx3-vlv'), running_pump:g('hx3-pmp'), psi:g('hx3-psi'), hz:g('hx3-hz'), amps:g('hx3-amp') },
+        { zone:'HX-4', supply_temp:g('hx4-tmp'), valve_pct:g('hx4-vlv'), running_pump:g('hx4-pmp'), psi:g('hx4-psi'), hz:g('hx4-hz'), amps:g('hx4-amp') },
+        { zone:'HX-5', supply_temp:g('hx5-tmp'), valve_pct:g('hx5-vlv'), running_pump:g('hx5-pmp'), psi:g('hx5-psi'), hz:g('hx5-hz'), amps:g('hx5-amp') }] },
+      heat_loop: { heat_loop_psi:g('hl-psi'), circ_pumps: [
+        { pump:'Circ Pump A', psi:g('cpa-psi'), hz:g('cpa-hz'), amps:g('cpa-amps'), status:g('cpa-rof') },
+        { pump:'Circ Pump B', psi:g('cpb-psi'), hz:g('cpb-hz'), amps:g('cpb-amps'), status:g('cpb-rof') },
+        { pump:'Circ Pump C', psi:g('cpc-psi'), hz:g('cpc-hz'), amps:g('cpc-amps'), status:g('cpc-rof') }] },
+      dhw_tank: { tank_setpoint:g('dhw-sp'), system_pressure:g('dhw-sys'),
+        suction_pressure:g('dhw-suc'), tank_temperature:g('dhw-tmp'),
+        booster_pumps: [
+          { pump:'Booster Pump 1', hz:g('bp1-hz'), amps:g('bp1-amps'), status:g('bp1-rof') },
+          { pump:'Booster Pump 2', hz:g('bp2-hz'), amps:g('bp2-amps'), status:g('bp2-rof') },
+          { pump:'Booster Pump 3', hz:g('bp3-hz'), amps:g('bp3-amps'), status:g('bp3-rof') }] },
+      hrc: { status:g('hrc-stat'), demand:g('hrc-dem'), mode:g('hrc-mode'),
+        entering_chilled_water:g('hrc-ecw'), leaving_chilled_water:g('hrc-lcw'),
+        entering_heating_water:g('hrc-ehw'), leaving_heating_water:g('hrc-lhw') },
+      hrc_pumps: [
+        { pump:'HRC Pump 1', psi:g('hp1-psi'), hz:g('hp1-hz'), amps:g('hp1-amps'), status:g('hp1-rof') },
+        { pump:'HRC Pump 2', psi:g('hp2-psi'), hz:g('hp2-hz'), amps:g('hp2-amps'), status:g('hp2-rof') },
+        { pump:'HRC Pump 4', psi:g('hp4-psi'), hz:g('hp4-hz'), amps:g('hp4-amps'), status:g('hp4-rof') },
+        { pump:'HRC Pump 5', psi:g('hp5-psi'), hz:g('hp5-hz'), amps:g('hp5-amps'), status:g('hp5-rof') }],
+      notes: g('notes')
+    };
+  }
+
+  // ── SUMMARY ───────────────────────────────────────────────────────────────
+  function buildSummary() {
+    var d = collect();
+    var dt = d.meta.date ? d.meta.date.replace(/(\d{4})(\d{2})(\d{2})/, '$2/$3/$1') : '—';
+    var running = [], faulted = [];
+    for (var i = 0; i < d.boiler_plant.boilers.length; i++) {
+      var b = d.boiler_plant.boilers[i];
+      if (b.status === 'R') running.push(b.unit);
+      if (b.status === 'F') faulted.push(b.unit);
+    }
+    var s = '<b>Date:</b> ' + dt + ' &nbsp; <b>Round:</b> ' + d.meta.round + '<br>' +
+      '<b>Operator:</b> ' + dvs(d.meta.operator) + ' &nbsp; <b>OSA:</b> ' + dvs(d.meta.osa_temp) + '°F &nbsp; <b>Shift:</b> ' + dvs(d.meta.shift) + '<br><br>' +
+      '<b>Boilers Running:</b> ' + (running.length ? running.join(', ') : 'None') + '<br>' +
+      (faulted.length ? '<b class="flagtxt">⚠ FAULT: ' + esc(faulted.join(', ')) + '</b>' : '') +
+      '<b>Ch-1:</b> ' + dvs(d.chiller_plant.chillers[0].supply_temp) + '°F · ' + dvs(d.chiller_plant.chillers[0].pct_full_power) + '%<br>' +
+      '<b>Ch-2:</b> ' + dvs(d.chiller_plant.chillers[1].supply_temp) + '°F · ' + dvs(d.chiller_plant.chillers[1].pct_full_power) + '%<br>' +
+      '<b>HRC:</b> ' + dvs(d.hrc.status) + '% · Demand ' + dvs(d.hrc.demand) + '% · Mode: ' + dvs(d.hrc.mode) + '<br>' +
+      '<b>CW:</b> Ent ' + dvs(d.hrc.entering_chilled_water) + '°F → Lvg ' + dvs(d.hrc.leaving_chilled_water) + '°F<br>' +
+      '<b>HW:</b> Ent ' + dvs(d.hrc.entering_heating_water) + '°F → Lvg ' + dvs(d.hrc.leaving_heating_water) + '°F<br>' +
+      '<b>Cool Loop PSI:</b> ' + dvs(d.cool_loop.cool_loop_psi) + ' &nbsp; <b>Heat Loop PSI:</b> ' + dvs(d.heat_loop.heat_loop_psi) + '<br>' +
+      '<b>CT:</b> SP ' + dvs(d.cooling_tower.ct_setpoint) + '°F · Return ' + dvs(d.cooling_tower.tower_return_temp) + '°F · pH ' + dvs(d.cooling_tower.ph) + ' · ORP ' + dvs(d.cooling_tower.orp_mv) + 'mV<br>' +
+      '<b>DHW Tank:</b> ' + dvs(d.dhw_tank.tank_temperature) + '°F';
+    var fl = recordFlags(d);
+    s += '<br><b>Flags:</b> ' + (fl.length ? fl.map(function(x) { return '<span class="flagtxt">⚠ ' + esc(x) + '</span>'; }).join('') : 'none');
+    document.getElementById('sumbox').innerHTML = s;
+  }
+
+  // ── TOAST ─────────────────────────────────────────────────────────────────
+  var toastTimer = null;
+  function showToast(msg, ms) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast on';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() { t.className = 'toast'; }, ms || 2500);
+  }
+
+  document.getElementById('btn-save').addEventListener('click', function() { saveDraft(true); });
+
+  // ── EXPORT ────────────────────────────────────────────────────────────────
+  document.getElementById('btn-both').addEventListener('click', function() {
+    var d = collect();
+    if (!d.meta.date) { showToast('⚠️ Enter a date first'); return; }
+    var fn = d.meta.filename;
+
+    // ── Step 1: Export JSON — trigger download immediately ────────────
+    var json = JSON.stringify(d, null, 2);
+    var jblob = new Blob([json], { type: 'application/json' });
+    var jurl = URL.createObjectURL(jblob);
+    var ja = document.createElement('a');
+    ja.href = jurl;
+    ja.download = fn + '.json';
+    ja.style.display = 'none';
+    document.body.appendChild(ja);
+    ja.click();
+    setTimeout(function() {
+      document.body.removeChild(ja);
+      URL.revokeObjectURL(jurl);
+    }, 1000);
+
+    // ── Step 2: PDF — set page title to filename so Edge uses it ─────
+    // Then restore title after print dialog closes
+    setTimeout(function() {
+      syncPrintPages();
+      var originalTitle = document.title;
+      document.title = fn;
+      window.print();
+      // Restore after a delay — print dialog may still be open
+      setTimeout(function() {
+        document.title = originalTitle;
+      }, 3000);
+    }, 1000);
+
+    showToast('✅ Exporting: ' + fn);
+  });
+
+  // ── PDF / PRINT ───────────────────────────────────────────────────────────
+  function sv(id, val) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = (val !== null && val !== undefined && val !== '') ? val : '';
+  }
+
+  function srof(base, val) {
+    var r = document.getElementById(base+'-r');
+    var o = document.getElementById(base+'-o');
+    var f = document.getElementById(base+'-f');
+    if (r) r.className = 'prb' + (val==='R' ? ' r' : '');
+    if (o) o.className = 'prb' + (val==='O' ? ' o' : '');
+    if (f) f.className = 'prb' + (val==='F' ? ' f' : '');
+  }
+
+  function syncPrintPages() {
+    var d = collect();
+    var dt = d.meta.date ? d.meta.date.replace(/(\d{4})(\d{2})(\d{2})/, '$2/$3/$1') : '—';
+    var meta = 'Date: '+dt+' | Round: '+dv(d.meta.round)+' | Operator: '+dv(d.meta.operator)+' | OSA: '+dv(d.meta.osa_temp)+'°F | Shift: '+dv(d.meta.shift);
+    var pm = document.getElementById('ph-meta-cool');
+    if (pm) pm.textContent = '🔵 COOLING  —  ' + meta;
+
+    // Chiller
+    sv('pp-ch-sp', d.chiller_plant.cooling_setpoint);
+    sv('pp-ch1-tmp', d.chiller_plant.chillers[0].supply_temp);
+    sv('pp-ch1-pct', d.chiller_plant.chillers[0].pct_full_power);
+    srof('pp-ch1', d.chiller_plant.chillers[0].status);
+    sv('pp-ch2-tmp', d.chiller_plant.chillers[1].supply_temp);
+    sv('pp-ch2-pct', d.chiller_plant.chillers[1].pct_full_power);
+    srof('pp-ch2', d.chiller_plant.chillers[1].status);
+
+    // CW Pumps
+    var cw = d.condenser_water_pumps;
+    sv('pp-cw1-psi',cw[0].psi); sv('pp-cw1-hz',cw[0].hz); sv('pp-cw1-amps',cw[0].amps); srof('pp-cw1',cw[0].status);
+    sv('pp-cw2-psi',cw[1].psi); sv('pp-cw2-hz',cw[1].hz); sv('pp-cw2-amps',cw[1].amps); srof('pp-cw2',cw[1].status);
+    sv('pp-cw3-psi',cw[2].psi); sv('pp-cw3-hz',cw[2].hz); sv('pp-cw3-amps',cw[2].amps); srof('pp-cw3',cw[2].status);
+
+    // Cooling HX
+    sv('pp-chx-sp', d.cooling_hx.hx_setpoint);
+    var chx = d.cooling_hx.zones;
+    for (var i=0; i<chx.length; i++) {
+      var n = ['hx7','hx8','hx9'][i];
+      sv('pp-'+n+'-tmp',chx[i].supply_temp); sv('pp-'+n+'-vlv',chx[i].valve_pct);
+      sv('pp-'+n+'-pmp',chx[i].running_pump); sv('pp-'+n+'-psi',chx[i].psi);
+      sv('pp-'+n+'-hz',chx[i].hz); sv('pp-'+n+'-amp',chx[i].amps);
+    }
+
+    // Cool Loop
+    sv('pp-cl-psi', d.cool_loop.cool_loop_psi);
+    var cp = d.cool_loop.circ_pumps;
+    sv('pp-cp1-psi',cp[0].psi); sv('pp-cp1-hz',cp[0].hz); sv('pp-cp1-amps',cp[0].amps); srof('pp-cp1',cp[0].status);
+    sv('pp-cp2-psi',cp[1].psi); sv('pp-cp2-hz',cp[1].hz); sv('pp-cp2-amps',cp[1].amps); srof('pp-cp2',cp[1].status);
+    sv('pp-cp3-psi',cp[2].psi); sv('pp-cp3-hz',cp[2].hz); sv('pp-cp3-amps',cp[2].amps); srof('pp-cp3',cp[2].status);
+
+    // Cooling Tower
+    var ct = d.cooling_tower;
+    sv('pp-ct-lead',ct.lead_tower); sv('pp-ct-sp',ct.ct_setpoint); sv('pp-ct-ret',ct.tower_return_temp);
+    sv('pp-ct-chem',ct.chem_feeder_status); sv('pp-ct-ph',ct.ph); sv('pp-ct-orp',ct.orp_mv);
+    sv('pp-ct-tmp',ct.temperature); sv('pp-ct-cond',ct.conductivity);
+    sv('pp-ct-bs1',ct.basket_strainer_1_psi); sv('pp-ct-bs2',ct.basket_strainer_2_psi);
+
+    // Boilers
+    sv('pp-b-sp', d.boiler_plant.heating_setpoint);
+    var bl = d.boiler_plant.boilers;
+    for (var i=0; i<bl.length; i++) {
+      var n = 'b'+(i+1);
+      sv('pp-'+n+'-psi',bl[i].psi); sv('pp-'+n+'-tmp',bl[i].temp);
+      sv('pp-'+n+'-fire',bl[i].fire_rate); srof('pp-'+n,bl[i].status);
+    }
+
+    // FW Pumps
+    var fw = d.feedwater_pumps;
+    for (var i=0; i<fw.length; i++) {
+      var n = 'fw'+(i+1);
+      sv('pp-'+n+'-psi',fw[i].psi); srof('pp-'+n,fw[i].status);
+    }
+
+    // Heating HX
+    sv('pp-hhx-sp', d.heating_hx.hx_setpoint);
+    var hhx = d.heating_hx.zones;
+    for (var i=0; i<hhx.length; i++) {
+      var n = ['hx2','hx3','hx4','hx5'][i];
+      sv('pp-'+n+'-tmp',hhx[i].supply_temp); sv('pp-'+n+'-vlv',hhx[i].valve_pct);
+      sv('pp-'+n+'-pmp',hhx[i].running_pump); sv('pp-'+n+'-psi',hhx[i].psi);
+      sv('pp-'+n+'-hz',hhx[i].hz); sv('pp-'+n+'-amp',hhx[i].amps);
+    }
+
+    // Heat Loop
+    sv('pp-hl-psi', d.heat_loop.heat_loop_psi);
+    var hp = d.heat_loop.circ_pumps;
+    sv('pp-cpa-psi',hp[0].psi); sv('pp-cpa-hz',hp[0].hz); sv('pp-cpa-amps',hp[0].amps); srof('pp-cpa',hp[0].status);
+    sv('pp-cpb-psi',hp[1].psi); sv('pp-cpb-hz',hp[1].hz); sv('pp-cpb-amps',hp[1].amps); srof('pp-cpb',hp[1].status);
+    sv('pp-cpc-psi',hp[2].psi); sv('pp-cpc-hz',hp[2].hz); sv('pp-cpc-amps',hp[2].amps); srof('pp-cpc',hp[2].status);
+
+    // DHW
+    sv('pp-dhw-sp',d.dhw_tank.tank_setpoint); sv('pp-dhw-sys',d.dhw_tank.system_pressure);
+    sv('pp-dhw-suc',d.dhw_tank.suction_pressure); sv('pp-dhw-tmp',d.dhw_tank.tank_temperature);
+    var bp = d.dhw_tank.booster_pumps;
+    sv('pp-bp1-hz',bp[0].hz); sv('pp-bp1-amps',bp[0].amps); srof('pp-bp1',bp[0].status);
+    sv('pp-bp2-hz',bp[1].hz); sv('pp-bp2-amps',bp[1].amps); srof('pp-bp2',bp[1].status);
+    sv('pp-bp3-hz',bp[2].hz); sv('pp-bp3-amps',bp[2].amps); srof('pp-bp3',bp[2].status);
+
+    // HRC
+    sv('pp-hrc-stat',d.hrc.status); sv('pp-hrc-dem',d.hrc.demand); sv('pp-hrc-mode',d.hrc.mode);
+    sv('pp-hrc-ecw',d.hrc.entering_chilled_water); sv('pp-hrc-lcw',d.hrc.leaving_chilled_water);
+    sv('pp-hrc-ehw',d.hrc.entering_heating_water); sv('pp-hrc-lhw',d.hrc.leaving_heating_water);
+
+    // HRC Pumps
+    var hrcp = d.hrc_pumps;
+    sv('pp-hp1-psi',hrcp[0].psi); sv('pp-hp1-hz',hrcp[0].hz); sv('pp-hp1-amps',hrcp[0].amps); srof('pp-hp1',hrcp[0].status);
+    sv('pp-hp2-psi',hrcp[1].psi); sv('pp-hp2-hz',hrcp[1].hz); sv('pp-hp2-amps',hrcp[1].amps); srof('pp-hp2',hrcp[1].status);
+    sv('pp-hp4-psi',hrcp[2].psi); sv('pp-hp4-hz',hrcp[2].hz); sv('pp-hp4-amps',hrcp[2].amps); srof('pp-hp4',hrcp[2].status);
+    sv('pp-hp5-psi',hrcp[3].psi); sv('pp-hp5-hz',hrcp[3].hz); sv('pp-hp5-amps',hrcp[3].amps); srof('pp-hp5',hrcp[3].status);
+
+    // Notes + summary
+    sv('pp-notes-txt', d.notes || '');
+    var running = [], faulted = [];
+    for (var i=0; i<bl.length; i++) {
+      if (bl[i].status==='R') running.push(bl[i].unit);
+      if (bl[i].status==='F') faulted.push(bl[i].unit);
+    }
+    var sb = document.getElementById('pp-sumbox');
+    if (sb) sb.innerHTML =
+      '<b>Date:</b> '+dt+' &nbsp; <b>Round:</b> '+dvs(d.meta.round)+'<br>'+
+      '<b>Operator:</b> '+dvs(d.meta.operator)+' &nbsp; <b>OSA:</b> '+dvs(d.meta.osa_temp)+'°F &nbsp; <b>Shift:</b> '+dvs(d.meta.shift)+'<br><br>'+
+      '<b>Boilers Running:</b> '+(running.length?running.join(', '):'None')+'<br>'+
+      (faulted.length?'<b style="color:#C0392B">⚠ FAULT: '+faulted.join(', ')+'</b><br>':'')+
+      '<b>Ch-1:</b> '+dvs(d.chiller_plant.chillers[0].supply_temp)+'°F · '+dvs(d.chiller_plant.chillers[0].pct_full_power)+'%<br>'+
+      '<b>Ch-2:</b> '+dvs(d.chiller_plant.chillers[1].supply_temp)+'°F · '+dvs(d.chiller_plant.chillers[1].pct_full_power)+'%<br>'+
+      '<b>HRC:</b> '+dvs(d.hrc.status)+'% · Demand '+dvs(d.hrc.demand)+'% · Mode: '+dvs(d.hrc.mode)+'<br>'+
+      '<b>Cool Loop PSI:</b> '+dvs(d.cool_loop.cool_loop_psi)+' &nbsp; <b>Heat Loop PSI:</b> '+dvs(d.heat_loop.heat_loop_psi)+'<br>'+
+      '<b>CT:</b> pH '+dvs(d.cooling_tower.ph)+' · ORP '+dvs(d.cooling_tower.orp_mv)+'mV · Cond '+dvs(d.cooling_tower.conductivity)+'μS/cm<br>'+
+      '<b>DHW Tank:</b> '+dvs(d.dhw_tank.tank_temperature)+'°F';
+  }
+
+
+
+  // ── DOM HELPERS / STATE ───────────────────────────────────────────────────
+  var $ = function(id) { return document.getElementById(id); };
+  var DRAFT_KEY = 'oslu-draft-v2', DRAFT_TS = 'oslu-draft-v2-ts', TOKEN_KEY = 'oslu-token', OP_KEY = 'oslu-operator', HIST_KEY = 'oslu-hist-cache';
+  var META_IDS = ['m-date', 'm-time', 'm-round', 'm-op', 'm-shift'];
+  var lastSyncMsg = '', histMsg = '', submitting = false;
+  var histRemote = [];
+  try { histRemote = JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); if (!Array.isArray(histRemote)) histRemote = []; } catch (e) { histRemote = []; }
+
+  function formEls() {
+    return document.querySelectorAll('.meta input,.meta select,.page:not(#p-hist) input,.page:not(#p-hist) select,.page:not(#p-hist) textarea');
+  }
+  function readingCount() {
+    var n = 0, els = formEls();
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      if (!el.id || META_IDS.indexOf(el.id) >= 0) continue;
+      if (el.value && el.value.trim() !== '' && el.value !== '-') n++;
+    }
+    return n;
+  }
+  function syncRofButtons() {
+    var btns = document.querySelectorAll('.rb');
+    for (var i = 0; i < btns.length; i++) {
+      var h = $(btns[i].getAttribute('data-rof')), v = btns[i].getAttribute('data-val');
+      var on = h && h.value === v;
+      btns[i].className = 'rb' + (on ? ' ' + ({ R: 'ron', O: 'oon', F: 'fon' })[v] : '');
+    }
+  }
+
+  // ── RANGE HINTS (inline validation; a warning never blocks saving) ────────
+  // Which saved-record path each number input feeds is learned once at startup (probe), so the range rules
+  // in limits.json apply to the right inputs without any hand-kept list of field ids.
+  var RULE_BY_ID = {}, ID_PATH = {}, RULES_KEY = 'oslu-rules';
+  function probePaths() {
+    var els = document.querySelectorAll('.meta input[type=number],.page:not(#p-hist) input[type=number]'), map = {}, i;
+    for (i = 0; i < els.length; i++) { els[i].value = String(1000000 + i + 0.5); map[String(1000000 + i + 0.5)] = els[i].id; }
+    var flat = flattenRec(collect(), '', []), out = {};
+    flat.forEach(function(f) { if (typeof f.value === 'number' && map[String(f.value)]) out[map[String(f.value)]] = f.path; });
+    for (i = 0; i < els.length; i++) els[i].value = '';
+    return out;
+  }
+  function rebuildRanges() {
+    var old = document.querySelectorAll('.rng'), i;
+    for (i = 0; i < old.length; i++) old[i].parentNode.removeChild(old[i]);
+    var bad = document.querySelectorAll('input.bad');
+    for (i = 0; i < bad.length; i++) bad[i].classList.remove('bad');
+    RULE_BY_ID = {};
+    RULES.forEach(function(rule) {
+      if (rule.kind !== 'range' || rule.on === false) return;
+      var re = ruleRegex(rule.path);
+      Object.keys(ID_PATH).forEach(function(id) { if (re.test(ID_PATH[id])) RULE_BY_ID[id] = rule; });
+    });
+    Object.keys(RULE_BY_ID).forEach(function(id) {
+      var el = $(id); if (!el) return;
+      var r = RULE_BY_ID[id], h = document.createElement('span');
+      h.id = 'rng-' + id; h.className = 'rng';
+      var lab = el.closest('.ig,.sr');
+      if (lab) { lab = lab.querySelector('label'); lab.appendChild(h); h.textContent = 'Range ' + boundsText(r); }   // under the field name, so inputs stay aligned
+      else { var host = el.closest('.hxr').querySelector('.hxzone'); h.hidden = true; host.appendChild(h); }       // HX grid: shown only when out of range
+    });
+    rangeCheckAll();
+  }
+  function rangeCheck(el) {
+    var r = RULE_BY_ID[el.id]; if (!r) return;
+    var h = $('rng-' + el.id), v = el.value === '' ? null : parseFloat(el.value);
+    var s = checkRange(r, v);
+    el.classList.toggle('bad', !!s);
+    if (!h) return;
+    h.classList.toggle('bad', !!s);
+    if (h.parentNode.classList.contains('hxzone')) { h.hidden = !s; h.textContent = '⚠ Outside ' + boundsText(r); }
+    else h.textContent = (s ? '⚠ Outside ' : 'Range ') + boundsText(r);
+  }
+  function rangeCheckAll() { Object.keys(RULE_BY_ID).forEach(function(id) { var el = $(id); if (el) rangeCheck(el); }); }
+  // limits.json is edited on the dashboard; the last copy is cached so ranges also work offline
+  async function refreshLimits() {
+    if (!GH_TOKEN) return;
+    var r = await ghFetchRemote('limits.json');
+    if (!r.ok) return;                                  // keep the cached / starting rules on any failure
+    setRules(r.list);
+    try { localStorage.setItem(RULES_KEY, JSON.stringify(RULES)); } catch (e) {}
+    rebuildRanges(); renderHistory();
+  }
+
+  // ── SYNC BADGE / SYNC ─────────────────────────────────────────────────────
+  function updateBadge() {
+    var n = obList().length, cls, icon, msg;
+    if (n > 0) { cls = 'pend'; icon = '●'; msg = n + ' round' + (n === 1 ? '' : 's') + ' saved on this device, will sync' + (lastSyncMsg ? ' — ' + lastSyncMsg : ''); }
+    else if (!GH_TOKEN) { cls = 'err'; icon = '⚠'; msg = 'No token set. Rounds can only be saved on this device'; }
+    else if (lastSyncMsg) { cls = 'err'; icon = '⚠'; msg = lastSyncMsg; }
+    else { cls = 'ok'; icon = '✓'; msg = 'All rounds synced'; }
+    $('syncbar').className = 'syncbar ' + cls;
+    $('sdot').textContent = icon;
+    $('stxt').textContent = msg;
+  }
+  async function runSync() {
+    var res = await syncOutbox();
+    lastSyncMsg = res.ok ? '' : ghExplain(res);
+    updateBadge();
+    if (res.ok && res.synced > 0) refreshHistory();
+    refreshLimits();
+    return res;
+  }
+
+  // ── HISTORY ───────────────────────────────────────────────────────────────
+  function displayList() { return buildDisplay(histRemote, obList()); }
+  function filteredList() {
+    var rnd = $('h-round').value, op = $('h-op').value.trim().toLowerCase(), pend = $('h-pend').checked;
+    return displayList().filter(function(r) {
+      var m = r.meta || {};
+      if (rnd && String(m.round) !== rnd) return false;
+      if (op && String(m.operator || '').toLowerCase().indexOf(op) < 0) return false;
+      if (pend && r.synced) return false;
+      return true;
+    });
+  }
+  function renderHistory() {
+    var list = filteredList(), box = $('hlist');
+    $('hstat').textContent = histMsg;
+    if (!list.length) {
+      box.innerHTML = '<div class="empty">' + (displayList().length ? 'No rounds match these filters.' : 'No rounds yet. Submit a round and it will appear here.') + '</div>';
+      return;
+    }
+    var h = '';
+    for (var i = 0; i < list.length; i++) {
+      var r = list[i], m = r.meta || {}, fl = recordFlags(r);
+      var d = m.date ? m.date.slice(5, 7) + '/' + m.date.slice(8, 10) + '/' + m.date.slice(0, 4) : '—';
+      h += '<details class="hrow"><summary><span class="hdate">' + esc(d) + '</span><span>Round ' + esc(dv(m.round)) + '</span><span>' + esc(dv(m.time)) + '</span><span class="hop">' + esc(dv(m.operator)) + '</span>' +
+        (r.synced ? '<span class="chip ok">✓ Synced</span>' : '<span class="chip pend">● Pending</span>') +
+        (fl.length ? '<span class="chip flag">⚠ ' + fl.length + ' flag' + (fl.length === 1 ? '' : 's') + '</span>' : '') +
+        '</summary><pre class="hpre">' + esc(recordSummaryText(r)) + '</pre></details>';
+    }
+    box.innerHTML = h;
+  }
+  async function refreshHistory() {
+    if (!GH_TOKEN) { histMsg = 'No token set. Showing rounds saved on this device'; renderHistory(); return; }
+    var now = new Date(), py = now.getFullYear(), pm = now.getMonth(); // previous month
+    if (pm === 0) { py--; pm = 12; }
+    var pad2 = function(n) { return String(n).padStart(2, '0'); };
+    var files = ['data-' + now.getFullYear() + '-' + pad2(now.getMonth() + 1) + '.json', 'data-' + py + '-' + pad2(pm) + '.json'];
+    var all = [], failed = null;
+    for (var i = 0; i < files.length; i++) {
+      var r = await ghFetchRemote(files[i]);
+      if (r.ok) all = all.concat(r.list); else { failed = r; break; }
+    }
+    if (failed) { histMsg = 'Could not refresh: ' + ghExplain(failed) + '. Showing saved copy'; }
+    else {
+      all.sort(function(a, b) { return String(b.recorded_at).localeCompare(String(a.recorded_at)); });
+      histRemote = all.slice(0, 60);
+      try { localStorage.setItem(HIST_KEY, JSON.stringify(histRemote)); } catch (e) {}
+      histMsg = 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    renderHistory();
+  }
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text).then(function() { return true; }, function() { return false; });
+    return new Promise(function(res) {
+      var ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta); res(ok);
+    });
+  }
+  ['h-round', 'h-op', 'h-pend'].forEach(function(id) { $(id).addEventListener('input', renderHistory); $(id).addEventListener('change', renderHistory); });
+  $('btn-hrefresh').addEventListener('click', function() { refreshHistory(); runSync(); });
+  $('btn-hcopy').addEventListener('click', function() {
+    var list = filteredList();
+    if (!list.length) { showToast('Nothing to copy'); return; }
+    var text = 'OSLU Plant Rounds: ' + list.length + ' round' + (list.length === 1 ? '' : 's') + '\n\n' + list.map(recordSummaryText).join('\n\n');
+    copyText(text).then(function(ok) { showToast(ok ? '📋 Report copied' : '⚠️ Copy failed. Select and copy manually', 3000); });
+  });
+
+  // ── TOKEN ─────────────────────────────────────────────────────────────────
+  function fmtT(ts) { return ts ? new Date(ts).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' }) : 'never'; }
+  function renderDiag() {
+    var L = [], raw = null, ts = 0, o = {};
+    try { raw = localStorage.getItem(DRAFT_KEY); ts = parseInt(localStorage.getItem(DRAFT_TS) || '0'); o = raw ? JSON.parse(raw) : {}; } catch (e) {}
+    L.push('App version: ' + APP_VERSION);
+    L.push('Startup finished: ' + (window.__booted ? 'yes' : 'NO'));
+    L.push('Opened as Home Screen app: ' + (window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ? 'yes' : 'NO (Safari tab)'));
+    L.push('Device storage working: ' + (storageOk() ? 'yes' : 'NO'));
+    L.push('This launch: ' + fmtT(window.__thisOpen));
+    L.push('Previous launch remembered: ' + fmtT(window.__prevOpen));
+    L.push('Draft on device: ' + (raw ? fieldsWord(draftCountOf(o)) + ', written ' + fmtT(ts) : 'none'));
+    L.push('Rounds waiting to sync: ' + obList().length);
+    L.push('Token saved: ' + (GH_TOKEN ? 'yes' : 'no'));
+    L.push('Errors this session: ' + (window.__errs.length ? window.__errs.join(' | ') : 'none'));
+    $('diag').textContent = L.join('\n');
+  }
+  function openTokenDialog() {
+    renderDiag();
+    $('tok-state').textContent = GH_TOKEN ? 'A token is saved on this device (ends in …' + GH_TOKEN.slice(-4) + '). Rounds already waiting to sync are not affected by changing it.' : 'No token is saved on this device yet. Rounds are kept here until one is added.';
+    $('tok-in').value = '';
+    $('tokmodal').hidden = false;
+    $('tok-in').focus();
+  }
+  function closeTokenDialog() { $('tokmodal').hidden = true; $('tok-in').value = ''; }
+  $('btn-token').addEventListener('click', openTokenDialog);
+  $('tok-close').addEventListener('click', closeTokenDialog);
+  $('tok-save').addEventListener('click', function() {
+    var t = $('tok-in').value.trim();
+    if (t.length < 20) { showToast('⚠️ That does not look like a token', 3000); return; }
+    try { localStorage.setItem(TOKEN_KEY, t); } catch (e) { showToast('⚠️ Could not store the token on this device', 4000); return; }
+    GH_TOKEN = t; closeTokenDialog(); lastSyncMsg = ''; updateBadge(); showToast('✅ Token saved');
+    runSync().then(function() { refreshHistory(); });
+  });
+  $('tok-clear').addEventListener('click', function() {
+    // clears ONLY the token; queued rounds stay in their own keys
+    try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
+    GH_TOKEN = ''; closeTokenDialog(); updateBadge(); showToast('Token removed. Queued rounds are kept');
+  });
+  $('btn-sync').addEventListener('click', function() { showToast('Syncing…', 1200); runSync().then(function(res) { if (res.ok) showToast(res.synced ? '✅ Synced' : 'Nothing waiting to sync', 2500); else showToast('⚠️ ' + ghExplain(res), 5000); }); });
+
+  // ── DRAFT ─────────────────────────────────────────────────────────────────
+  // Rules: a saved draft is only ever removed by (1) submitting the round, (2) pressing Discard, or (3) being over 24 h old.
+  // An empty form or a closed app never deletes it, and no pop-up is used (iOS can suppress pop-ups).
+  var draftPending = false;
+  function draftCountOf(o) { var n = 0; Object.keys(o).forEach(function(id) { if (META_IDS.indexOf(id) < 0 && o[id] !== '' && o[id] !== '-' && o[id] !== null) n++; }); return n; }
+  function storageOk() { try { localStorage.setItem('oslu-selftest', '1'); var ok = localStorage.getItem('oslu-selftest') === '1'; localStorage.removeItem('oslu-selftest'); return ok; } catch (e) { return false; } }
+  function fieldsWord(n) { return n + ' field' + (n === 1 ? '' : 's'); }
+  function ageWords(ms) { var m = Math.max(1, Math.round(ms / 60000)); return m < 90 ? m + ' minute' + (m === 1 ? '' : 's') : Math.round(m / 60) + ' hours'; }
+  function updateDraftStat() {
+    var el = $('draftstat'), msg, bad = false;
+    if (!storageOk()) { msg = '⚠ This device is blocking storage, so drafts and queued rounds cannot be kept. Open the app from its Home Screen icon.'; bad = true; }
+    else if (draftPending) msg = 'An earlier unfinished round is waiting. Restore or discard it first.';
+    else {
+      var raw = null, ts = 0, o = {};
+      try { raw = localStorage.getItem(DRAFT_KEY); ts = parseInt(localStorage.getItem(DRAFT_TS) || '0'); o = raw ? JSON.parse(raw) : {}; } catch (e) {}
+      msg = raw && ts ? 'Draft saved ' + new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' · ' + fieldsWord(draftCountOf(o)) + ' kept on this device' : 'No draft saved yet. It saves automatically as you type.';
+    }
+    el.textContent = msg; el.className = 'draftstat' + (bad ? ' bad' : '');
+  }
+  function saveDraft(manual) {
+    if (draftPending) { if (manual) showToast('Restore or discard the earlier draft first', 3500); return; }
+    try {
+      if (readingCount() === 0) { if (manual) showToast('Nothing to save yet'); updateDraftStat(); return; }
+      var o = {}, els = formEls();
+      for (var i = 0; i < els.length; i++) if (els[i].id) o[els[i].id] = els[i].value;
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(o));
+      localStorage.setItem(DRAFT_TS, String(Date.now()));
+      if (manual) showToast('✅ Draft saved');
+    } catch (e) { if (manual) showToast('⚠️ Could not save the draft on this device', 5000); }
+    updateDraftStat();
+  }
+  function restoreDraft(o) {
+    Object.keys(o).forEach(function(id) {
+      if (id === 'm-date' || id === 'm-time') return; // a restored round gets today's date and time
+      var el = $(id); if (el) el.value = o[id];
+    });
+    syncRofButtons(); rangeCheckAll();
+    $('rpill').textContent = 'ROUND ' + $('m-round').value;
+    upd();
+  }
+  function offerDraft() {
+    try {
+      var raw = localStorage.getItem(DRAFT_KEY), ts = parseInt(localStorage.getItem(DRAFT_TS) || '0');
+      if (!raw) return;
+      if (Date.now() - ts > 86400000) { clearDraft(); return; }               // over 24 h old: expire it
+      var o = JSON.parse(raw); if (draftCountOf(o) === 0) return;
+      draftPending = true;
+      $('draftmsg').textContent = 'You have an unfinished round saved ' + ageWords(Date.now() - ts) + ' ago (' + fieldsWord(draftCountOf(o)) + ').';
+      $('draftbar').hidden = false;
+    } catch (e) {}
+  }
+  $('btn-restore').addEventListener('click', function() {
+    try { restoreDraft(JSON.parse(localStorage.getItem(DRAFT_KEY))); showToast('✅ Draft restored'); } catch (e) { showToast('⚠️ Could not read the draft', 4000); }
+    draftPending = false; $('draftbar').hidden = true; updateDraftStat();
+  });
+  $('btn-discard-draft').addEventListener('click', function() { clearDraft(); draftPending = false; $('draftbar').hidden = true; updateDraftStat(); showToast('Draft discarded'); });
+  function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(DRAFT_TS); } catch (e) {} updateDraftStat(); }
+  function resetForm() {
+    var els = document.querySelectorAll('.page:not(#p-hist) input,.page:not(#p-hist) select,.page:not(#p-hist) textarea');
+    for (var i = 0; i < els.length; i++) { if (els[i].tagName === 'SELECT') els[i].selectedIndex = 0; else els[i].value = ''; }
+    var now2 = new Date(), p2 = function(n) { return String(n).padStart(2, '0'); };
+    $('m-time').value = p2(now2.getHours()) + ':' + p2(now2.getMinutes());
+    syncRofButtons(); rangeCheckAll(); upd();
+  }
+
+  // ── SUBMIT ────────────────────────────────────────────────────────────────
+  $('btn-submit').addEventListener('click', async function() {
+    if (submitting) return;
+    var d = collect();
+    if (!d.meta.date) { showToast('⚠️ Enter a date first'); return; }
+    if (!d.meta.operator || !d.meta.operator.trim()) { showToast('⚠️ Enter the operator name first'); return; }
+    if (readingCount() === 0) { showToast('⚠️ Nothing entered yet'); return; }
+    submitting = true; $('btn-submit').disabled = true;
+    try {
+      var rec = buildRecord(d, APP_VERSION, new Date().toISOString());
+      if (!obAdd(rec)) { showToast('⚠️ Could not save on this device (storage full or blocked). The form was kept', 6000); return; }
+      clearDraft(); resetForm(); updateBadge(); renderHistory();
+      showToast('💾 Saved on this device', 1500);
+      var res = await runSync();
+      var still = obList().some(function(r) { return r.id === rec.id; });
+      renderHistory();
+      if (!still) showToast('✅ Round synced', 3000);
+      else showToast('💾 Saved on this device, will sync' + (res.ok ? '' : '. ' + ghExplain(res)), 6000);
+    } finally { submitting = false; $('btn-submit').disabled = false; }
+  });
+
+  // ── RETRY TRIGGERS ────────────────────────────────────────────────────────
+  window.addEventListener('online', function() { runSync(); });
+  document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible') { if (obList().length) runSync(); } });
+  setInterval(function() { if (obList().length) runSync(); }, 45000);
+
+  // Draft is saved shortly after every edit, and again when the app is hidden or closed (iPads pause a closed app, so a timer alone loses data)
+  var draftTimer = null;
+  function scheduleDraft() { clearTimeout(draftTimer); draftTimer = setTimeout(function() { saveDraft(false); }, 400); }
+  function inForm(el) { return !!(el && el.closest && el.closest('.meta,.page:not(#p-hist)')); }
+  document.body.addEventListener('change', function(e) { if (inForm(e.target)) scheduleDraft(); });
+  document.body.addEventListener('click', function(e) { if (e.target.closest && e.target.closest('.rb')) scheduleDraft(); });
+  document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'hidden') saveDraft(false); });
+  window.addEventListener('pagehide', function() { saveDraft(false); });
+  document.body.addEventListener('input', function(e) {
+    if (inForm(e.target)) scheduleDraft();
+    if (e.target.id) rangeCheck(e.target);
+    if (e.target.id === 'm-op') { try { localStorage.setItem(OP_KEY, e.target.value); } catch (x) {} }
+  });
+
+  // ── INIT ──────────────────────────────────────────────────────────────────
+  try { window.__prevOpen = parseInt(localStorage.getItem('oslu-lastopen') || '0') || 0; window.__thisOpen = Date.now(); localStorage.setItem('oslu-lastopen', String(window.__thisOpen)); } catch (e) {}
+  var now = new Date();
+  var pad = function(n) { return String(n).padStart(2, '0'); };
+  var dateEl = document.getElementById('m-date');
+  var timeEl = document.getElementById('m-time');
+  if (dateEl) dateEl.value = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+  if (timeEl) timeEl.value = pad(now.getHours()) + ':' + pad(now.getMinutes());
+  $('ver').textContent = APP_VERSION;
+  try { $('m-op').value = localStorage.getItem(OP_KEY) || ''; } catch (e) {}
+  ID_PATH = probePaths();
+  try { setRules(JSON.parse(localStorage.getItem(RULES_KEY) || 'null')); } catch (e) { setRules(null); }
+  rebuildRanges();
+
+  // iPad: a Safari tab and the Home Screen icon keep separate storage, and Safari can erase unused site data
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var standalone = window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  if (isIOS && !standalone) $('iosnote').hidden = false;
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+
+  // Unfinished draft: offered on screen (Restore / Discard), never auto-discarded
+  offerDraft(); updateDraftStat();
+
+  // Autosave every 60s (silent)
+  setInterval(function() { saveDraft(false); }, 60000);
+  upd();
+
+  // Startup: the outbox and cached history are loaded BEFORE touching the network
+  updateBadge();
+  renderHistory();
+  if (obList().length) runSync(); else if (GH_TOKEN) { refreshHistory(); refreshLimits(); }
+  window.__booted = true;
+
+})();
+</script>
+
+<!-- STATIC PRINT PAGES — inline styles only for maximum Edge compatibility -->
+<div class="print-page-wrap" style="display:none;">
+
+<!-- PAGE 1: COOLING -->
+<div class="pp" style="width:100%;page-break-after:always;">
+  <div class="ph">ONNI SOUTH LAKE UNION — District Energy Equipment Log — Capilano Energy
+    <span class="ph-sub" id="ph-meta-cool">🔵 COOLING SYSTEMS</span>
+  </div>
+  <table style="width:100%;border-collapse:collapse;vertical-align:top;">
+  <tr>
+  <!-- LEFT: Chiller + CW + Cooling HX -->
+  <td style="width:50%;vertical-align:top;padding-right:3px;">
+
+    <div class="pcard">
+      <div class="pch c">Chiller Plant</div>
+      <div class="psp c">Cooling Setpoint (°F): <span id="pp-ch-sp" style="border-bottom:1px solid #999;min-width:30px;display:inline-block;">&nbsp;</span></div>
+      <div class="psh c">Ch-1</div>
+      <div class="pdr ce"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">Supply Temp</div><div class="pfi-val" id="pp-ch1-tmp">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Pct Full Pwr</div><div class="pfi-val" id="pp-ch1-pct">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-ch1-r">R</div><div class="prb" id="pp-ch1-o">O</div><div class="prb" id="pp-ch1-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh c">Ch-2</div>
+      <div class="pdr ce"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">Supply Temp</div><div class="pfi-val" id="pp-ch2-tmp">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Pct Full Pwr</div><div class="pfi-val" id="pp-ch2-pct">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-ch2-r">R</div><div class="prb" id="pp-ch2-o">O</div><div class="prb" id="pp-ch2-f">F</div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <div class="pcard" style="margin-top:3px;">
+      <div class="pch c">Condenser Water Pumps</div>
+      <div class="psh c">CW Pump 1</div>
+      <div class="pdr ce"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-cw1-psi">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">HZ</div><div class="pfi-val" id="pp-cw1-hz">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Amps</div><div class="pfi-val" id="pp-cw1-amps">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-cw1-r">R</div><div class="prb" id="pp-cw1-o">O</div><div class="prb" id="pp-cw1-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh c">CW Pump 2</div>
+      <div class="pdr ce"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-cw2-psi">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">HZ</div><div class="pfi-val" id="pp-cw2-hz">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Amps</div><div class="pfi-val" id="pp-cw2-amps">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-cw2-r">R</div><div class="prb" id="pp-cw2-o">O</div><div class="prb" id="pp-cw2-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh c">CW Pump 3</div>
+      <div class="pdr ce"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-cw3-psi">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">HZ</div><div class="pfi-val" id="pp-cw3-hz">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Amps</div><div class="pfi-val" id="pp-cw3-amps">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-cw3-r">R</div><div class="prb" id="pp-cw3-o">O</div><div class="prb" id="pp-cw3-f">F</div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <div class="pcard" style="margin-top:3px;">
+      <div class="pch c">Cooling HX (HX-7, 8, 9)</div>
+      <div class="psp c">HX Setpoint (°F): <span id="pp-chx-sp" style="border-bottom:1px solid #999;min-width:30px;display:inline-block;">&nbsp;</span></div>
+      <div class="phxhdr c"><span>Zone</span><span>Supply Temp</span><span>Valve %</span><span>Run Pump</span><span>PSI</span><span>HZ</span><span>Amps</span></div>
+      <div class="phxr ce"><div class="phxzone">HX-7<small>&lt;20</small></div>
+        <div class="phxval" id="pp-hx7-tmp">&nbsp;</div><div class="phxval" id="pp-hx7-vlv">&nbsp;</div>
+        <div class="phxval" id="pp-hx7-pmp">&nbsp;</div><div class="phxval" id="pp-hx7-psi">&nbsp;</div>
+        <div class="phxval" id="pp-hx7-hz">&nbsp;</div><div class="phxval" id="pp-hx7-amp">&nbsp;</div>
+      </div>
+      <div class="phxr ce"><div class="phxzone">HX-8<small>T1 &gt;20</small></div>
+        <div class="phxval" id="pp-hx8-tmp">&nbsp;</div><div class="phxval" id="pp-hx8-vlv">&nbsp;</div>
+        <div class="phxval" id="pp-hx8-pmp">&nbsp;</div><div class="phxval" id="pp-hx8-psi">&nbsp;</div>
+        <div class="phxval" id="pp-hx8-hz">&nbsp;</div><div class="phxval" id="pp-hx8-amp">&nbsp;</div>
+      </div>
+      <div class="phxr ce"><div class="phxzone">HX-9<small>T2 &gt;20</small></div>
+        <div class="phxval" id="pp-hx9-tmp">&nbsp;</div><div class="phxval" id="pp-hx9-vlv">&nbsp;</div>
+        <div class="phxval" id="pp-hx9-pmp">&nbsp;</div><div class="phxval" id="pp-hx9-psi">&nbsp;</div>
+        <div class="phxval" id="pp-hx9-hz">&nbsp;</div><div class="phxval" id="pp-hx9-amp">&nbsp;</div>
+      </div>
+    </div>
+
+  </td>
+  <!-- RIGHT: Cool Loop + Cooling Tower -->
+  <td style="width:50%;vertical-align:top;padding-left:3px;">
+
+    <div class="pcard">
+      <div class="pch c">Cool Loop Pressures</div>
+      <div class="plp c" style="display:flex;justify-content:space-between;padding:3px 6px;background:#D6EAF8;">
+        <span style="font-size:8px;font-weight:700;color:#0D3F6B;">Cool Loop PSI</span>
+        <span id="pp-cl-psi" style="font-size:8px;border-bottom:1px solid #999;min-width:40px;display:inline-block;">&nbsp;</span>
+      </div>
+      <div class="psh c">Circ Pump 1</div>
+      <div class="pdr ce"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-cp1-psi">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">HZ</div><div class="pfi-val" id="pp-cp1-hz">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Amps</div><div class="pfi-val" id="pp-cp1-amps">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-cp1-r">R</div><div class="prb" id="pp-cp1-o">O</div><div class="prb" id="pp-cp1-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh c">Circ Pump 2</div>
+      <div class="pdr ce"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-cp2-psi">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">HZ</div><div class="pfi-val" id="pp-cp2-hz">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Amps</div><div class="pfi-val" id="pp-cp2-amps">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-cp2-r">R</div><div class="prb" id="pp-cp2-o">O</div><div class="prb" id="pp-cp2-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh c">Circ Pump 3</div>
+      <div class="pdr ce"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-cp3-psi">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">HZ</div><div class="pfi-val" id="pp-cp3-hz">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Amps</div><div class="pfi-val" id="pp-cp3-amps">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-cp3-r">R</div><div class="prb" id="pp-cp3-o">O</div><div class="prb" id="pp-cp3-f">F</div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <div class="pcard" style="margin-top:3px;">
+      <div class="pch c">Cooling Tower</div>
+      <div class="pvr"><div class="pvr-lbl">Lead Tower</div><div class="pvr-val" id="pp-ct-lead">&nbsp;</div></div>
+      <div class="pvr"><div class="pvr-lbl">CT Setpoint (°F)</div><div class="pvr-val" id="pp-ct-sp">&nbsp;</div></div>
+      <div class="pvr"><div class="pvr-lbl">Tower Return Temp</div><div class="pvr-val" id="pp-ct-ret">&nbsp;</div></div>
+      <div class="pvr"><div class="pvr-lbl">Chem Feeder Status</div><div class="pvr-val" id="pp-ct-chem">&nbsp;</div></div>
+      <div class="pvr"><div class="pvr-lbl">pH</div><div class="pvr-val" id="pp-ct-ph">&nbsp;</div></div>
+      <div class="pvr"><div class="pvr-lbl">ORP (mV)</div><div class="pvr-val" id="pp-ct-orp">&nbsp;</div></div>
+      <div class="pvr"><div class="pvr-lbl">Temperature (°F)</div><div class="pvr-val" id="pp-ct-tmp">&nbsp;</div></div>
+      <div class="pvr"><div class="pvr-lbl">Conductivity (μS/cm)</div><div class="pvr-val" id="pp-ct-cond">&nbsp;</div></div>
+      <div class="pvr"><div class="pvr-lbl">Basket Strainer 1 PSI</div><div class="pvr-val" id="pp-ct-bs1">&nbsp;</div></div>
+      <div class="pvr"><div class="pvr-lbl">Basket Strainer 2 PSI</div><div class="pvr-val" id="pp-ct-bs2">&nbsp;</div></div>
+    </div>
+
+  </td>
+  </tr></table>
+</div><!-- /pp-cool -->
+
+<!-- PAGE 2: HEATING -->
+<div class="pp" style="width:100%;page-break-after:always;">
+  <div class="ph">ONNI SOUTH LAKE UNION — District Energy Equipment Log — Capilano Energy
+    <span class="ph-sub">🔶 HEATING SYSTEMS</span>
+  </div>
+  <table style="width:100%;border-collapse:collapse;vertical-align:top;">
+  <tr>
+  <!-- LEFT: Boiler + FW Pumps -->
+  <td style="width:50%;vertical-align:top;padding-right:3px;">
+
+    <div class="pcard">
+      <div class="pch w">Boiler Plant</div>
+      <div class="psp w">Heating Setpoint (°F): <span id="pp-b-sp" style="border-bottom:1px solid #999;min-width:30px;display:inline-block;">&nbsp;</span></div>
+      <div class="psh w">B-1</div>
+      <div class="pdr we"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-b1-psi">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Temp °F</div><div class="pfi-val" id="pp-b1-tmp">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Fire %</div><div class="pfi-val" id="pp-b1-fire">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-b1-r">R</div><div class="prb" id="pp-b1-o">O</div><div class="prb" id="pp-b1-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh w">B-2</div>
+      <div class="pdr we"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-b2-psi">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Temp °F</div><div class="pfi-val" id="pp-b2-tmp">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Fire %</div><div class="pfi-val" id="pp-b2-fire">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-b2-r">R</div><div class="prb" id="pp-b2-o">O</div><div class="prb" id="pp-b2-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh w">B-3</div>
+      <div class="pdr we"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-b3-psi">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Temp °F</div><div class="pfi-val" id="pp-b3-tmp">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Fire %</div><div class="pfi-val" id="pp-b3-fire">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-b3-r">R</div><div class="prb" id="pp-b3-o">O</div><div class="prb" id="pp-b3-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh w">B-4</div>
+      <div class="pdr we"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-b4-psi">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Temp °F</div><div class="pfi-val" id="pp-b4-tmp">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Fire %</div><div class="pfi-val" id="pp-b4-fire">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-b4-r">R</div><div class="prb" id="pp-b4-o">O</div><div class="prb" id="pp-b4-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh w">B-5</div>
+      <div class="pdr we"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-b5-psi">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Temp °F</div><div class="pfi-val" id="pp-b5-tmp">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Fire %</div><div class="pfi-val" id="pp-b5-fire">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-b5-r">R</div><div class="prb" id="pp-b5-o">O</div><div class="prb" id="pp-b5-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh w">B-6</div>
+      <div class="pdr we"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-b6-psi">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Temp °F</div><div class="pfi-val" id="pp-b6-tmp">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Fire %</div><div class="pfi-val" id="pp-b6-fire">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-b6-r">R</div><div class="prb" id="pp-b6-o">O</div><div class="prb" id="pp-b6-f">F</div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <div class="pcard" style="margin-top:3px;">
+      <div class="pch w">Feedwater Pumps</div>
+      <div class="psh w">FW Pump 1</div>
+      <div class="pdr we"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-fw1-psi">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-fw1-r">R</div><div class="prb" id="pp-fw1-o">O</div><div class="prb" id="pp-fw1-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh w">FW Pump 2</div>
+      <div class="pdr we"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-fw2-psi">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-fw2-r">R</div><div class="prb" id="pp-fw2-o">O</div><div class="prb" id="pp-fw2-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh w">FW Pump 3</div>
+      <div class="pdr we"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-fw3-psi">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-fw3-r">R</div><div class="prb" id="pp-fw3-o">O</div><div class="prb" id="pp-fw3-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh w">FW Pump 4</div>
+      <div class="pdr we"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-fw4-psi">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-fw4-r">R</div><div class="prb" id="pp-fw4-o">O</div><div class="prb" id="pp-fw4-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh w">FW Pump 5</div>
+      <div class="pdr we"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-fw5-psi">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-fw5-r">R</div><div class="prb" id="pp-fw5-o">O</div><div class="prb" id="pp-fw5-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh w">FW Pump 6</div>
+      <div class="pdr we"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-fw6-psi">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-fw6-r">R</div><div class="prb" id="pp-fw6-o">O</div><div class="prb" id="pp-fw6-f">F</div>
+        </div></div>
+      </div></div>
+    </div>
+
+  </td>
+  <!-- RIGHT: Heating HX + Heat Loop + DHW -->
+  <td style="width:50%;vertical-align:top;padding-left:3px;">
+
+    <div class="pcard">
+      <div class="pch w">Heating HX (HX-2, 3, 4, 5)</div>
+      <div class="psp w">HX Setpoint (°F): <span id="pp-hhx-sp" style="border-bottom:1px solid #999;min-width:30px;display:inline-block;">&nbsp;</span></div>
+      <div class="phxhdr w"><span>Zone</span><span>Supply Temp</span><span>Valve %</span><span>Run Pump</span><span>PSI</span><span>HZ</span><span>Amps</span></div>
+      <div class="phxr we"><div class="phxzone">HX-2<small>DHW</small></div>
+        <div class="phxval" id="pp-hx2-tmp">&nbsp;</div><div class="phxval" id="pp-hx2-vlv">&nbsp;</div>
+        <div class="phxval" id="pp-hx2-pmp">&nbsp;</div><div class="phxval" id="pp-hx2-psi">&nbsp;</div>
+        <div class="phxval" id="pp-hx2-hz">&nbsp;</div><div class="phxval" id="pp-hx2-amp">&nbsp;</div>
+      </div>
+      <div class="phxr we"><div class="phxzone">HX-3<small>&lt;20</small></div>
+        <div class="phxval" id="pp-hx3-tmp">&nbsp;</div><div class="phxval" id="pp-hx3-vlv">&nbsp;</div>
+        <div class="phxval" id="pp-hx3-pmp">&nbsp;</div><div class="phxval" id="pp-hx3-psi">&nbsp;</div>
+        <div class="phxval" id="pp-hx3-hz">&nbsp;</div><div class="phxval" id="pp-hx3-amp">&nbsp;</div>
+      </div>
+      <div class="phxr we"><div class="phxzone">HX-4<small>T1 &gt;20</small></div>
+        <div class="phxval" id="pp-hx4-tmp">&nbsp;</div><div class="phxval" id="pp-hx4-vlv">&nbsp;</div>
+        <div class="phxval" id="pp-hx4-pmp">&nbsp;</div><div class="phxval" id="pp-hx4-psi">&nbsp;</div>
+        <div class="phxval" id="pp-hx4-hz">&nbsp;</div><div class="phxval" id="pp-hx4-amp">&nbsp;</div>
+      </div>
+      <div class="phxr we"><div class="phxzone">HX-5<small>T2 &gt;20</small></div>
+        <div class="phxval" id="pp-hx5-tmp">&nbsp;</div><div class="phxval" id="pp-hx5-vlv">&nbsp;</div>
+        <div class="phxval" id="pp-hx5-pmp">&nbsp;</div><div class="phxval" id="pp-hx5-psi">&nbsp;</div>
+        <div class="phxval" id="pp-hx5-hz">&nbsp;</div><div class="phxval" id="pp-hx5-amp">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="pcard" style="margin-top:3px;">
+      <div class="pch w">Heat Loop Pressures</div>
+      <div class="plp w" style="display:flex;justify-content:space-between;padding:3px 6px;background:#FDEBD0;">
+        <span style="font-size:8px;font-weight:700;color:#6B2E00;">Heat Loop PSI</span>
+        <span id="pp-hl-psi" style="font-size:8px;border-bottom:1px solid #999;min-width:40px;display:inline-block;">&nbsp;</span>
+      </div>
+      <div class="psh w">Circ Pump A</div>
+      <div class="pdr we"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-cpa-psi">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">HZ</div><div class="pfi-val" id="pp-cpa-hz">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Amps</div><div class="pfi-val" id="pp-cpa-amps">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-cpa-r">R</div><div class="prb" id="pp-cpa-o">O</div><div class="prb" id="pp-cpa-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh w">Circ Pump B</div>
+      <div class="pdr we"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-cpb-psi">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">HZ</div><div class="pfi-val" id="pp-cpb-hz">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Amps</div><div class="pfi-val" id="pp-cpb-amps">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-cpb-r">R</div><div class="prb" id="pp-cpb-o">O</div><div class="prb" id="pp-cpb-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="psh w">Circ Pump C</div>
+      <div class="pdr we"><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-cpc-psi">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">HZ</div><div class="pfi-val" id="pp-cpc-hz">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Amps</div><div class="pfi-val" id="pp-cpc-amps">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-cpc-r">R</div><div class="prb" id="pp-cpc-o">O</div><div class="prb" id="pp-cpc-f">F</div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <div class="pcard" style="margin-top:3px;">
+      <div class="pch w">Domestic Hot Water Tank</div>
+      <div class="psh w">Tank Readings</div>
+      <div class="pvr we"><div class="pvr-lbl">Tank Setpoint (°F)</div><div class="pvr-val" id="pp-dhw-sp">&nbsp;</div></div>
+      <div class="pvr we"><div class="pvr-lbl">System Pressure</div><div class="pvr-val" id="pp-dhw-sys">&nbsp;</div></div>
+      <div class="pvr we"><div class="pvr-lbl">Suction Pressure</div><div class="pvr-val" id="pp-dhw-suc">&nbsp;</div></div>
+      <div class="pvr we"><div class="pvr-lbl">Tank Temperature (°F)</div><div class="pvr-val" id="pp-dhw-tmp">&nbsp;</div></div>
+      <div class="psh w">Booster Pumps</div>
+      <div class="pdr we"><span style="font-size:8px;font-weight:700;min-width:30px;flex-shrink:0;">BP 1</span><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">HZ</div><div class="pfi-val" id="pp-bp1-hz">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Amps</div><div class="pfi-val" id="pp-bp1-amps">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-bp1-r">R</div><div class="prb" id="pp-bp1-o">O</div><div class="prb" id="pp-bp1-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="pdr we"><span style="font-size:8px;font-weight:700;min-width:30px;flex-shrink:0;">BP 2</span><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">HZ</div><div class="pfi-val" id="pp-bp2-hz">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Amps</div><div class="pfi-val" id="pp-bp2-amps">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-bp2-r">R</div><div class="prb" id="pp-bp2-o">O</div><div class="prb" id="pp-bp2-f">F</div>
+        </div></div>
+      </div></div>
+      <div class="pdr we"><span style="font-size:8px;font-weight:700;min-width:30px;flex-shrink:0;">BP 3</span><div class="pfg">
+        <div class="pfi"><div class="pfi-lbl">HZ</div><div class="pfi-val" id="pp-bp3-hz">&nbsp;</div></div>
+        <div class="pfi"><div class="pfi-lbl">Amps</div><div class="pfi-val" id="pp-bp3-amps">&nbsp;</div></div>
+        <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+          <div class="prb" id="pp-bp3-r">R</div><div class="prb" id="pp-bp3-o">O</div><div class="prb" id="pp-bp3-f">F</div>
+        </div></div>
+      </div></div>
+    </div>
+
+  </td>
+  </tr></table>
+</div><!-- /pp-heat -->
+
+<!-- PAGE 3: SHARED -->
+<div class="pp" style="width:100%;page-break-after:always;">
+  <div class="ph">ONNI SOUTH LAKE UNION — District Energy Equipment Log — Capilano Energy
+    <span class="ph-sub">🟢 SHARED SYSTEMS</span>
+  </div>
+  <div class="pcard">
+    <div class="pch t">HRC — Heat Recovery Chiller</div>
+    <div class="psh t">Status / Demand / Mode</div>
+    <div class="pdr te"><div class="pfg">
+      <div class="pfi"><div class="pfi-lbl">Status %</div><div class="pfi-val" id="pp-hrc-stat">&nbsp;</div></div>
+      <div class="pfi"><div class="pfi-lbl">Demand %</div><div class="pfi-val" id="pp-hrc-dem">&nbsp;</div></div>
+      <div class="pfi"><div class="pfi-lbl">Mode</div><div class="pfi-val" id="pp-hrc-mode">&nbsp;</div></div>
+    </div></div>
+    <div class="psh t">Entering / Leaving Chilled Water</div>
+    <div class="pdr te"><div class="pfg">
+      <div class="pfi"><div class="pfi-lbl">Ent. CW °F</div><div class="pfi-val" id="pp-hrc-ecw">&nbsp;</div></div>
+      <div class="pfi"><div class="pfi-lbl">Lvg. CW °F</div><div class="pfi-val" id="pp-hrc-lcw">&nbsp;</div></div>
+    </div></div>
+    <div class="psh t">Entering / Leaving Heating Water</div>
+    <div class="pdr te"><div class="pfg">
+      <div class="pfi"><div class="pfi-lbl">Ent. HW °F</div><div class="pfi-val" id="pp-hrc-ehw">&nbsp;</div></div>
+      <div class="pfi"><div class="pfi-lbl">Lvg. HW °F</div><div class="pfi-val" id="pp-hrc-lhw">&nbsp;</div></div>
+    </div></div>
+  </div>
+  <div class="pcard" style="margin-top:3px;">
+    <div class="pch t">HRC Pumps</div>
+    <div class="psh t">HRC Pump 1</div>
+    <div class="pdr te"><div class="pfg">
+      <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-hp1-psi">&nbsp;</div></div>
+      <div class="pfi"><div class="pfi-lbl">HZ</div><div class="pfi-val" id="pp-hp1-hz">&nbsp;</div></div>
+      <div class="pfi"><div class="pfi-lbl">Amps</div><div class="pfi-val" id="pp-hp1-amps">&nbsp;</div></div>
+      <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+        <div class="prb" id="pp-hp1-r">R</div><div class="prb" id="pp-hp1-o">O</div><div class="prb" id="pp-hp1-f">F</div>
+      </div></div>
+    </div></div>
+    <div class="psh t">HRC Pump 2</div>
+    <div class="pdr te"><div class="pfg">
+      <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-hp2-psi">&nbsp;</div></div>
+      <div class="pfi"><div class="pfi-lbl">HZ</div><div class="pfi-val" id="pp-hp2-hz">&nbsp;</div></div>
+      <div class="pfi"><div class="pfi-lbl">Amps</div><div class="pfi-val" id="pp-hp2-amps">&nbsp;</div></div>
+      <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+        <div class="prb" id="pp-hp2-r">R</div><div class="prb" id="pp-hp2-o">O</div><div class="prb" id="pp-hp2-f">F</div>
+      </div></div>
+    </div></div>
+    <div class="psh t">HRC Pump 4</div>
+    <div class="pdr te"><div class="pfg">
+      <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-hp4-psi">&nbsp;</div></div>
+      <div class="pfi"><div class="pfi-lbl">HZ</div><div class="pfi-val" id="pp-hp4-hz">&nbsp;</div></div>
+      <div class="pfi"><div class="pfi-lbl">Amps</div><div class="pfi-val" id="pp-hp4-amps">&nbsp;</div></div>
+      <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+        <div class="prb" id="pp-hp4-r">R</div><div class="prb" id="pp-hp4-o">O</div><div class="prb" id="pp-hp4-f">F</div>
+      </div></div>
+    </div></div>
+    <div class="psh t">HRC Pump 5</div>
+    <div class="pdr te"><div class="pfg">
+      <div class="pfi"><div class="pfi-lbl">PSI</div><div class="pfi-val" id="pp-hp5-psi">&nbsp;</div></div>
+      <div class="pfi"><div class="pfi-lbl">HZ</div><div class="pfi-val" id="pp-hp5-hz">&nbsp;</div></div>
+      <div class="pfi"><div class="pfi-lbl">Amps</div><div class="pfi-val" id="pp-hp5-amps">&nbsp;</div></div>
+      <div class="prof"><div class="prof-lbl">Status</div><div class="prof-row">
+        <div class="prb" id="pp-hp5-r">R</div><div class="prb" id="pp-hp5-o">O</div><div class="prb" id="pp-hp5-f">F</div>
+      </div></div>
+    </div></div>
+  </div>
+</div><!-- /pp-shared -->
+
+<!-- PAGE 4: NOTES -->
+<div class="pp" style="width:100%;page-break-after:avoid;">
+  <div class="ph">ONNI SOUTH LAKE UNION — District Energy Equipment Log — Capilano Energy
+    <span class="ph-sub">📝 NOTES / ROUND SUMMARY</span>
+  </div>
+  <div class="pcard">
+    <div class="pch t">Notes / Alarms / Actions Taken</div>
+    <div class="pnotes"><div class="pnotes-box" id="pp-notes-txt"></div></div>
+  </div>
+  <div class="pcard" style="margin-top:3px;">
+    <div class="pch t">Round Summary</div>
+    <div class="psumbox" id="pp-sumbox"></div>
+  </div>
+</div><!-- /pp-notes -->
+
+</div><!-- /print-page-wrap -->
+
+
+</body>
+</html>
