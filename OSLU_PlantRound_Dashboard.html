@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>OSLU Plant Rounds Dashboard</title>
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:#eef1f0;--card:#ffffff;--text:#1A2E2C;--text2:#3d4b49;--text3:#566462;
+  --border:#d8dedc;--input-bg:#ffffff;--input-border:#7d8b89;
+  --warm:#B5500A;--warm-l:#FDEBD0;--warm-alt:#FEF6EE;--warm-g:#F0C0A0;--warm-t:#6B2E00;
+  --cool:#1565A0;--cool-l:#D6EAF8;--cool-alt:#EEF6FD;--cool-g:#90C0E0;--cool-t:#0D3F6B;
+  --teal:#1A7A6E;--teal-l:#E0F4F1;--teal-alt:#F0FAF8;--teal-g:#A8D5CC;--teal-t:#0F5A50;
+  --ok:#1A7A3C;--off:#444444;--danger:#C0392B;--danger-text:#A32A1E;--danger-bg:#FBE4E1;
+  --on-solid:#ffffff;
+  --grad:linear-gradient(90deg,#0A6C96 0%,#12796D 50%,#3C7D22 100%);
+  --card-shadow:0 1px 4px rgba(0,0,0,.10);--btn-shadow:0 1px 2px rgba(0,0,0,.20);--bar-shadow:0 -2px 10px rgba(0,0,0,.10);
+  --toast-bg:#1A2E2C;--toast-text:#ffffff;--scrim:rgba(0,0,0,.55);
+  --r:8px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0e1514;--card:#172220;--text:#e8f0ee;--text2:#bccac7;--text3:#9bacaa;
+    --border:#2c3b38;--input-bg:#0f1918;--input-border:#6f817e;
+    --warm:#B5500A;--warm-l:#3a2412;--warm-alt:#1f1b17;--warm-g:#6b4220;--warm-t:#f6cfaa;
+    --cool:#1565A0;--cool-l:#15314b;--cool-alt:#18232c;--cool-g:#2d5a7e;--cool-t:#aad3f3;
+    --teal:#1A7A6E;--teal-l:#123733;--teal-alt:#162a28;--teal-g:#2c6a62;--teal-t:#a3ded4;
+    --danger-text:#ffa196;--danger-bg:#4a1f1a;
+    --card-shadow:0 1px 5px rgba(0,0,0,.55);--btn-shadow:0 1px 3px rgba(0,0,0,.65);--bar-shadow:0 -2px 12px rgba(0,0,0,.6);
+    --toast-bg:#e8f0ee;--toast-text:#0e1514;
+  }
+}
+/* ---- dashboard-only tokens (the shared palette above is copied verbatim from the field app) ---- */
+:root{--ok-bg:#DDF3E4;--ok-text:#14532D;--chart-grid:#c9d1cf;--band:#cfe8e3;}
+@media (prefers-color-scheme:dark){:root{--ok-bg:#12331f;--ok-text:#a8e6bd;--chart-grid:#33423f;--band:#1d4a43;}}
+*{box-sizing:border-box;margin:0;padding:0;}
+[hidden]{display:none !important;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','SF Pro Text',Roboto,sans-serif;font-size:14px;line-height:1.4;background:var(--bg);color:var(--text);min-height:100vh;}
+button,input,select{font-family:inherit;}
+.top{background:var(--grad);color:var(--on-solid);padding:14px 20px;display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;justify-content:space-between;}
+.top h1{font-size:20px;font-weight:700;}
+.top p{font-size:13px;}
+.ver{font-weight:700;white-space:nowrap;}
+.topr{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;font-size:13px;font-weight:600;}
+.tbtn{min-height:44px;padding:0 14px;border-radius:var(--r);border:1.5px solid var(--input-border);background:var(--card);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;box-shadow:var(--btn-shadow);}
+.tbtn:active{box-shadow:none;transform:translateY(1px);}
+.tbtn.on{background:var(--danger);border-color:var(--danger);color:var(--on-solid);}
+.banner{padding:12px 20px;font-size:14px;font-weight:700;background:var(--warm-l);color:var(--warm-t);border-bottom:2px solid var(--warm);}
+.banner.err{background:var(--danger);color:var(--on-solid);border-color:var(--danger);}
+.alerts{background:var(--danger);color:var(--on-solid);padding:12px 20px;}
+.alerts h2{font-size:15px;margin-bottom:6px;}
+.alerts ul{list-style:none;display:flex;flex-direction:column;gap:3px;font-size:14px;font-weight:600;}
+.tabs{display:flex;background:var(--card);border-bottom:2px solid var(--border);position:sticky;top:0;z-index:20;overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:0 0 auto;min-height:48px;padding:0 22px;font-size:14px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;color:var(--text3);}
+.tab.act{color:var(--teal-t);border-bottom-color:var(--teal);background:var(--teal-l);}
+.wrap{max-width:1560px;margin:0 auto;padding:16px 20px 60px;}
+.pane{display:none;}
+.pane.act{display:block;}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--card-shadow);margin-bottom:16px;overflow:hidden;}
+.card>h2{padding:12px 16px;font-size:15px;font-weight:700;color:var(--on-solid);}
+.card>h2.c{background:var(--cool);}.card>h2.w{background:var(--warm);}.card>h2.t{background:var(--teal);}
+.card>h2 small{font-weight:600;margin-left:8px;font-size:13px;}
+.pad{padding:14px 16px;}
+.note{font-size:13px;color:var(--text2);line-height:1.5;}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:16px;}
+.tile{background:var(--card);border-radius:var(--r);box-shadow:var(--card-shadow);padding:14px 16px;border-left:6px solid var(--teal);}
+.tile.ok{border-left-color:var(--ok);}.tile.warn{border-left-color:var(--warm);}.tile.late,.tile.bad{border-left-color:var(--danger);}
+.tile .k{font-size:13px;color:var(--text2);font-weight:600;}
+.tile .v{font-size:30px;font-weight:700;line-height:1.15;margin:2px 0;}
+.tile .s{font-size:13px;color:var(--text2);}
+.chip{display:inline-block;padding:2px 10px;border-radius:12px;font-size:13px;font-weight:700;white-space:nowrap;}
+.chip.ok{background:var(--ok-bg);color:var(--ok-text);}
+.chip.warn{background:var(--warm-l);color:var(--warm-t);}
+.chip.late,.chip.bad{background:var(--danger);color:var(--on-solid);}
+.chip.none{background:var(--card);color:var(--text2);border:1px dashed var(--input-border);}
+.chip.info{background:var(--cool-l);color:var(--cool-t);}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;}
+@media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr);}}
+.hxgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;padding:14px 16px;}
+.hxcard{border:1px solid var(--border);border-radius:var(--r);padding:12px;background:var(--card);}
+.hxcard.bad{border:2px solid var(--danger);}
+.hxcard h3{font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.hxcard h3 small{font-size:13px;color:var(--text2);font-weight:600;}
+.hxnums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0;}
+.hxnums div{font-size:13px;color:var(--text2);}
+.hxnums b{display:block;font-size:20px;color:var(--text);line-height:1.2;}
+.chart{display:block;width:100%;height:auto;touch-action:pan-y;cursor:crosshair;}
+.chart:focus-visible,.spark:focus-visible{outline:2px solid var(--teal-t);outline-offset:2px;border-radius:4px;}
+.xh line{stroke:var(--text2);stroke-width:1.2;stroke-dasharray:3 3;}
+.xh circle{fill:var(--card);stroke:var(--text);stroke-width:2.5;}
+.tip{position:fixed;z-index:600;background:var(--toast-bg);color:var(--toast-text);padding:8px 12px;border-radius:8px;font-size:13px;line-height:1.45;pointer-events:none;max-width:270px;box-shadow:var(--card-shadow);}
+.tip b{display:block;margin-bottom:2px;}
+.tip .tipsub{opacity:1;margin-top:3px;border-top:1px solid var(--chart-grid);padding-top:3px;font-size:12px;}
+.ax{font-size:12px;fill:var(--text3);}
+.l-act{fill:none;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round;}
+.l-cool{stroke:var(--cool);}.l-heat{stroke:var(--warm);}
+.l-sp{fill:none;stroke:var(--text2);stroke-width:1.8;stroke-dasharray:5 4;}
+.dot-cool{fill:var(--cool);}.dot-heat{fill:var(--warm);}
+.band{fill:var(--band);}
+.grid-l{stroke:var(--chart-grid);stroke-width:1;}
+.lgnd{display:flex;gap:14px;font-size:12px;color:var(--text2);margin-top:2px;flex-wrap:wrap;}
+.lgnd i{display:inline-block;width:18px;height:0;border-top:3px solid var(--cool);vertical-align:middle;margin-right:5px;}
+.lgnd i.h{border-top-color:var(--warm);}.lgnd i.d{border-top:2px dashed var(--text2);}
+.donutwrap{display:flex;gap:20px;align-items:center;flex-wrap:wrap;padding:14px 16px;}
+.donut{width:150px;height:150px;flex:0 0 auto;}
+.donut .num{font-size:28px;font-weight:700;fill:var(--text);}
+.donut .lab{font-size:12px;fill:var(--text3);}
+.s-R{stroke:var(--ok);}.s-O{stroke:var(--off);}.s-F{stroke:var(--danger);}.s-N{stroke:var(--chart-grid);}
+.legend{list-style:none;display:flex;flex-direction:column;gap:6px;font-size:14px;}
+.legend b{font-size:18px;margin-right:6px;}
+.legend .sw{display:inline-block;width:14px;height:14px;border-radius:3px;margin-right:8px;vertical-align:-2px;}
+.sw.R{background:var(--ok);}.sw.O{background:var(--off);}.sw.F{background:var(--danger);}.sw.N{background:var(--chart-grid);}
+.lc{padding:12px 16px;}
+.lc h3{font-size:13px;color:var(--text2);margin:10px 0 6px;font-weight:700;}
+.lc h3:first-child{margin-top:0;}
+.chips{display:flex;flex-wrap:wrap;gap:6px;}
+.scrollx{overflow-x:auto;}
+table{border-collapse:collapse;width:100%;font-size:14px;}
+th{font-size:13px;text-align:left;color:var(--text2);font-weight:700;padding:6px 8px;border-bottom:2px solid var(--border);white-space:nowrap;}
+td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:top;}
+tbody tr:nth-child(even) td{background:var(--teal-alt);}
+.hm th,.hm td{text-align:center;}
+.hm th:first-child,.hm td:first-child{text-align:left;font-weight:700;white-space:nowrap;}
+.hm td{min-width:64px;font-variant-numeric:tabular-nums;}
+.hm .flag{background:var(--danger) !important;color:var(--on-solid);font-weight:700;}
+.hm .unusual{background:var(--warm-l) !important;color:var(--warm-t);font-weight:700;}
+.hm .na{color:var(--text3);}
+.hm .sR{background:var(--ok-bg) !important;color:var(--ok-text);font-weight:700;}
+.hm .sO{color:var(--text2);font-weight:700;}
+.hm h3{font-size:14px;}
+.sechead{font-size:16px;font-weight:700;margin:18px 0 8px;display:flex;gap:10px;align-items:baseline;}
+.sechead small{font-size:13px;color:var(--text2);font-weight:600;}
+.ucards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;}
+.ucard{position:relative;background:var(--card);border-radius:var(--r);box-shadow:var(--card-shadow);padding:12px;overflow:hidden;}
+.ucard h3{min-height:28px;font-size:15px;display:flex;justify-content:space-between;gap:8px;align-items:center;}
+.ucard.fault{border:2px solid var(--danger);}
+.ucard .oos{margin:-12px -12px 8px;padding:6px 12px;background:var(--danger);color:var(--on-solid);font-weight:700;font-size:13px;}
+.ucard dl{display:grid;grid-template-columns:auto auto;gap:2px 10px;font-size:13px;margin:8px 0;}
+.ucard dt{color:var(--text2);}.ucard dd{font-weight:700;text-align:right;font-variant-numeric:tabular-nums;}
+.spark{display:block;width:100%;height:auto;touch-action:pan-y;cursor:crosshair;}
+.cap{font-size:12px;color:var(--text3);}
+.filters{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-end;padding:12px 16px;border-bottom:1px solid var(--border);}
+.filters label{font-size:13px;font-weight:700;color:var(--text2);display:flex;flex-direction:column;gap:3px;}
+.filters input,.filters select,.fld{border:1.5px solid var(--input-border);border-radius:6px;padding:8px 10px;font-size:14px;min-height:44px;background:var(--input-bg);color:var(--text);}
+.filters .chk{flex-direction:row;align-items:center;gap:8px;min-height:44px;}
+.filters .chk input{width:20px;height:20px;min-height:0;}
+.btn{min-height:44px;padding:0 16px;border-radius:var(--r);border:none;font-size:14px;font-weight:700;cursor:pointer;background:var(--teal-l);color:var(--teal-t);box-shadow:var(--btn-shadow);}
+.btn:active{box-shadow:none;transform:translateY(1px);}
+.btn.pri{background:var(--grad);color:var(--on-solid);}
+.btn.del{background:var(--danger);color:var(--on-solid);min-height:36px;padding:0 12px;}
+.btn[disabled]{filter:grayscale(.6);cursor:default;}
+.notes{max-width:420px;white-space:pre-wrap;word-break:break-word;}
+details.dd summary{cursor:pointer;color:var(--teal-t);font-weight:700;}
+.flagl{color:var(--danger-text);font-weight:700;}
+.set input.fld{width:90px;text-align:center;}
+.set td:first-child{min-width:230px;font-weight:600;}
+code{font-size:12px;color:var(--text2);word-break:break-all;}
+.empty{padding:26px 16px;font-size:15px;color:var(--text2);line-height:1.5;}
+.modal{position:fixed;inset:0;background:var(--scrim);z-index:400;display:flex;align-items:center;justify-content:center;padding:16px;}
+.mbox{background:var(--card);color:var(--text);border-radius:12px;padding:20px;width:100%;max-width:440px;box-shadow:var(--card-shadow);}
+.mbox h2{font-size:17px;margin-bottom:8px;}
+.mbox p{font-size:13px;line-height:1.5;color:var(--text2);margin-bottom:10px;}
+.mbox label{font-size:13px;font-weight:700;display:block;margin-bottom:4px;}
+.mbox input{width:100%;border:1.5px solid var(--input-border);border-radius:6px;padding:10px;font-size:16px;min-height:44px;background:var(--input-bg);color:var(--text);margin-bottom:12px;}
+.mrow{display:flex;gap:8px;flex-wrap:wrap;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--toast-bg);color:var(--toast-text);padding:12px 20px;border-radius:24px;font-size:14px;font-weight:600;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;width:max-content;max-width:90vw;text-align:center;}
+.toast.on{opacity:1;}
+:focus-visible{outline:2px solid var(--teal-t);outline-offset:2px;}
+@media (max-width:600px){.wrap{padding:12px 10px 50px;}.top{padding:12px;}.hxgrid{padding:10px;grid-template-columns:minmax(0,1fr);}.tile .v{font-size:26px;}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div><h1>ONNI South Lake Union · District Energy</h1><p>Plant rounds dashboard · Capilano Energy · <span class="ver" id="ver"></span></p></div>
+  <div class="topr">
+    <span id="upd">Not loaded yet</span><span id="cd"></span>
+    <button class="tbtn" id="btn-refresh">Refresh now</button>
+    <button class="tbtn" id="btn-token">Token</button>
+    <button class="tbtn" id="btn-admin" aria-pressed="false">Admin mode: off</button>
+  </div>
+</header>
+<div class="banner" id="stale" role="status" hidden></div>
+<div class="alerts" id="alerts" role="alert" hidden></div>
+<nav class="tabs" aria-label="Sections">
+  <button class="tab act" data-t="over">Overview</button>
+  <button class="tab" data-t="equip">Equipment</button>
+  <button class="tab" data-t="hist">History</button>
+  <button class="tab" data-t="set">Settings</button>
+</nav>
+<main class="wrap">
+  <section class="pane act" id="p-over"></section>
+  <section class="pane" id="p-equip"></section>
+  <section class="pane" id="p-hist">
+    <div class="card">
+      <h2 class="t">Round history<small id="hcount"></small></h2>
+      <div class="filters">
+        <label>From<input type="date" id="f-from"></label>
+        <label>To<input type="date" id="f-to"></label>
+        <label>Round<select id="f-round"><option value="">All</option></select></label>
+        <label>Tested by<input type="text" id="f-op" placeholder="Name"></label>
+        <label>Notes contain<input type="text" id="f-q" placeholder="Search notes"></label>
+        <label class="chk"><input type="checkbox" id="f-flags"> Flagged rounds only</label>
+        <button class="btn pri" id="btn-csv">Export CSV</button>
+      </div>
+      <div class="scrollx"><table><thead id="hhead"></thead><tbody id="hbody"></tbody></table></div>
+      <div class="filters"><button class="btn" id="hmore" hidden>Show more</button><button class="btn" id="btn-older">Load one older month</button><span class="note" id="hfiles"></span></div>
+    </div>
+  </section>
+  <section class="pane" id="p-set"></section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<div class="tip" id="tip" role="tooltip" hidden></div>
+<div class="modal" id="tokmodal" hidden>
+  <div class="mbox" role="dialog" aria-modal="true" aria-labelledby="tok-h">
+    <h2 id="tok-h">Data token</h2>
+    <p id="tok-state"></p>
+    <label for="tok-in">Paste the access token</label>
+    <input type="password" id="tok-in" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <div class="mrow"><button class="btn pri" id="tok-save">Save token</button><button class="btn" id="tok-clear">Remove token</button><button class="btn" id="tok-close">Close</button></div>
+  </div>
+</div>
+
+<script>
+// ===== CONFIG =====
+var GH_REPO='Lscapo/District-Energy-Plant-Data', GH_BRANCH='data';
+var GH_TOKEN=''; try{GH_TOKEN=localStorage.getItem('oslu-token')||'';}catch(e){}
+// ===== GH CORE BEGIN (shared by field app + dashboard) =====
+// The page defines GH_REPO ('owner/repo'), GH_BRANCH ('data') and GH_TOKEN (string, may be empty).
+// Every write follows one rule: fetch the CURRENT remote file, apply a small ID-based change
+// to that fresh copy, PUT with the SHA from that same fetch. Local copies are never a write base.
+function ghUrl(file){return 'https://api.github.com/repos/'+GH_REPO+'/contents/'+file+'?ref='+GH_BRANCH;}
+function ghPutUrl(file){return 'https://api.github.com/repos/'+GH_REPO+'/contents/'+file;}
+function monthFile(dateIso){var m=/^(\d{4})-(\d{2})-\d{2}$/.exec(String(dateIso||''));return m?'data-'+m[1]+'-'+m[2]+'.json':null;}
+function b64ToUtf8(b){
+  var bin=atob(String(b).replace(/\s/g,''));
+  var bytes=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+  return new TextDecoder('utf-8').decode(bytes);
+}
+function utf8ToB64(s){return btoa(unescape(encodeURIComponent(s)));}
+function stripLocal(e){var c={};for(var k in e){if(k!=='synced')c[k]=e[k];}return c;}
+
+// One timer covers the whole request INCLUDING reading the body (a stalled body hangs forever otherwise)
+async function ghRequest(url,opts,ms){
+  var c=new AbortController();
+  var t=setTimeout(function(){c.abort();},ms);
+  try{
+    var r=await fetch(url,Object.assign({cache:'no-store',signal:c.signal},opts));
+    var text=await r.text();
+    return{status:r.status,ok:r.ok,text:text};
+  }finally{clearTimeout(t);}
+}
+function ghHdr(accept,json){
+  var h={'Authorization':'token '+GH_TOKEN,'Accept':accept||'application/vnd.github.v3+json'};
+  if(json)h['Content-Type']='application/json';
+  return h;
+}
+
+async function ghFetchRemote(file){
+  if(!GH_TOKEN)return{ok:false,reason:'notoken'};
+  try{
+    var r=await ghRequest(ghUrl(file),{headers:ghHdr()},5000);
+    if(r.status===404)return{ok:true,list:[],sha:null,missing:true};
+    if(r.status===401)return{ok:false,reason:'auth',status:401};
+    if(!r.ok)return{ok:false,reason:'http',status:r.status};
+    var j=JSON.parse(r.text);
+    var text;
+    if(j.content&&j.encoding!=='none'){
+      text=b64ToUtf8(j.content);
+    }else if(j.size>0){
+      // Contents API returns EMPTY content for files over 1 MB -- fetch the raw body instead
+      var rr=await ghRequest(ghUrl(file),{headers:ghHdr('application/vnd.github.raw+json')},12000);
+      if(!rr.ok)return{ok:false,reason:'http',status:rr.status};
+      text=rr.text;
+    }else{text='[]';}
+    var list=JSON.parse(text);
+    if(!Array.isArray(list))return{ok:false,reason:'format'};
+    if(j.size>10&&list.length===0)return{ok:false,reason:'format'}; // never trust an "empty" read of a non-empty file
+    return{ok:true,list:list,sha:j.sha,size:j.size};
+  }catch(e){return{ok:false,reason:'network',error:String(e)};}
+}
+
+async function ghPut(file,list,sha,message){
+  try{
+    var body={message:message,content:utf8ToB64(JSON.stringify(list.map(stripLocal))),branch:GH_BRANCH};
+    if(sha)body.sha=sha;
+    var w=await ghRequest(ghPutUrl(file),{method:'PUT',headers:ghHdr(null,true),body:JSON.stringify(body)},20000);
+    if(w.ok)return{ok:true};
+    return{ok:false,status:w.status};
+  }catch(e){return{ok:false,error:String(e)};} // outcome unknown -- the next attempt re-checks by ID
+}
+
+// mutator(remoteList) -> null (nothing to change) or {list, added, removed}
+async function ghMutate(file,mutator,message){
+  if(!GH_TOKEN)return{ok:false,reason:'notoken'};
+  for(var attempt=0;attempt<3;attempt++){
+    var rem=await ghFetchRemote(file);
+    if(!rem.ok)return{ok:false,reason:rem.reason,status:rem.status};
+    var plan=mutator(rem.list);
+    if(!plan)return{ok:true,changed:false,list:rem.list};
+    // Safety guard: the write may only add/remove exactly what the mutator says it does
+    var keep=new Set(plan.list),lost=0;
+    for(var i=0;i<rem.list.length;i++){if(!keep.has(rem.list[i]))lost++;}
+    var added=plan.list.length-(rem.list.length-lost);
+    if(lost!==(plan.removed||0)||added!==(plan.added||0))return{ok:false,reason:'guard'};
+    var w=await ghPut(file,plan.list,rem.sha,message);
+    if(w.ok)return{ok:true,changed:true,list:plan.list};
+    if(w.status===409||w.status===422)continue; // someone wrote first: re-fetch, re-apply, retry
+    if(w.status===401)return{ok:false,reason:'auth',status:401};
+    return{ok:false,reason:w.status?'http':'network',status:w.status};
+  }
+  return{ok:false,reason:'conflict'};
+}
+
+// Delete exactly one record by ID from the FRESH remote copy. If the ID is absent nothing is written;
+// if it matches more than one record (should never happen) the guard aborts the write.
+async function ghDeleteById(file,id){
+  return ghMutate(file,function(remote){
+    var out=remote.filter(function(r){return!(r&&r.id===id);});
+    var gone=remote.length-out.length;
+    if(gone===0)return null;
+    return{list:out,added:0,removed:1}; // guard compares this claim (1) with what really disappears
+  },'Delete round '+id);
+}
+
+// Plain-language text for every failure reason (never a generic "offline")
+function ghExplain(r){
+  if(!r||r.ok)return '';
+  if(r.reason==='notoken')return 'No token set';
+  if(r.reason==='auth')return 'Token rejected (401). Tap Token to change it';
+  if(r.reason==='http'){
+    if(r.status===403)return 'Token lacks permission, or GitHub rate limit reached (403)';
+    if(r.status===404)return 'Data repo or branch not found, or token has no access to it (404)';
+    return 'GitHub returned an error ('+r.status+')';
+  }
+  if(r.reason==='format')return 'Data file has a format problem. Nothing was written';
+  if(r.reason==='guard')return 'Safety check blocked the write. Nothing was written';
+  if(r.reason==='conflict')return 'Another device was writing. Will retry';
+  if(r.reason==='network')return 'No signal, or the request timed out';
+  return 'Sync problem ('+r.reason+')';
+}
+// ===== GH CORE END =====
+
+// ===== RULES BEGIN (shared by field app + dashboard) =====
+function esc(s){return String(s===null||s===undefined?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function dv(x){return(x===null||x===undefined||x==='')?'—':String(x);}   // 0 is a real value, never "empty"
+function dvs(x){return esc(dv(x));}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+// FLAG RULES. These are only the starting values; the dashboard's Settings tab edits them and saves them to
+// limits.json on the data branch, and both apps then use that file. Nothing here is a compliance claim.
+//  range rule: {id,kind:'range',label,path,min,max,unit,on}      min and/or max may be null (one-sided)
+//  delta rule: {id,kind:'delta',label,path,sp,below,above,unit,on}  flags when (reading - setpoint) is more than
+//              'below' under or 'above' over the setpoint. Blank (null) = not flagged yet; the difference is still shown.
+// A delta rule normally compares with the setpoint recorded in each round (sp = its path). HX-2 (domestic hot water) has its own
+// setpoint that is not recorded in rounds: fixedSp:true + spValue (a number set in Settings; null = not set yet).
+// 'path' matches the saved record; [*] matches any unit/pump/zone name. Units that are Off (status O) are skipped for delta rules.
+function R(id,label,path,min,max){return{id:id,kind:'range',label:label,path:path,min:min,max:max,unit:'%',on:true};}
+function D(id,label,path,sp){return{id:id,kind:'delta',label:label,path:path,sp:sp,below:null,above:null,unit:'°F',on:true};}
+var DEFAULT_RULES=[
+  {id:'r-ct-ph',kind:'range',label:'Cooling tower pH',path:'cooling_tower.ph',min:7.0,max:8.5,unit:'',on:true},
+  R('r-ch-pct','Chiller % full power','chiller_plant.chillers[*].pct_full_power',0,100),
+  R('r-chx-valve','Cooling HX valve %','cooling_hx.zones[*].valve_pct',0,100),
+  R('r-hhx-valve','Heating HX valve %','heating_hx.zones[*].valve_pct',0,100),
+  R('r-b-fire','Boiler fire rate %','boiler_plant.boilers[*].fire_rate',0,100),
+  R('r-hrc-status','HRC status %','hrc.status',0,100),
+  R('r-hrc-demand','HRC demand %','hrc.demand',0,100),
+  {id:'d-hx2',kind:'delta',label:'HX-2 (domestic hot water) delivery vs setpoint',path:'heating_hx.zones[HX-2].supply_temp',sp:null,spValue:null,fixedSp:true,below:null,above:null,unit:'°F',on:true},
+  D('d-hx3','HX-3 delivery vs setpoint','heating_hx.zones[HX-3].supply_temp','heating_hx.hx_setpoint'),
+  D('d-hx4','HX-4 delivery vs setpoint','heating_hx.zones[HX-4].supply_temp','heating_hx.hx_setpoint'),
+  D('d-hx5','HX-5 delivery vs setpoint','heating_hx.zones[HX-5].supply_temp','heating_hx.hx_setpoint'),
+  D('d-hx7','HX-7 delivery vs setpoint','cooling_hx.zones[HX-7].supply_temp','cooling_hx.hx_setpoint'),
+  D('d-hx8','HX-8 delivery vs setpoint','cooling_hx.zones[HX-8].supply_temp','cooling_hx.hx_setpoint'),
+  D('d-hx9','HX-9 delivery vs setpoint','cooling_hx.zones[HX-9].supply_temp','cooling_hx.hx_setpoint'),
+  D('d-ch','Chiller supply vs setpoint','chiller_plant.chillers[*].supply_temp','chiller_plant.cooling_setpoint'),
+  D('d-boiler','Boiler temp vs setpoint','boiler_plant.boilers[*].temp','boiler_plant.heating_setpoint'),
+  D('d-ct','Tower return vs setpoint','cooling_tower.tower_return_temp','cooling_tower.ct_setpoint'),
+  D('d-dhw','DHW tank vs setpoint','dhw_tank.tank_temperature','dhw_tank.tank_setpoint')
+];
+var RULES=clone(DEFAULT_RULES);
+function validRule(r){return!!(r&&typeof r.id==='string'&&(r.kind==='range'||r.kind==='delta')&&typeof r.path==='string'&&(r.kind==='range'||typeof r.sp==='string'||r.fixedSp===true));}
+// limits.json saved before HX-2 had its own setpoint still points HX-2 at the heating setpoint: switch it over in memory
+function migrateRule(r){if(r&&r.id==='d-hx2'&&r.fixedSp===undefined){r.fixedSp=true;r.sp=null;r.spValue=null;r.label='HX-2 (domestic hot water) delivery vs setpoint';}return r;}
+// an empty or unreadable list means "use the starting values"
+function setRules(list){var ok=Array.isArray(list)?clone(list).map(migrateRule).filter(validRule):[];RULES=ok.length?ok:clone(DEFAULT_RULES);return RULES;}
+
+// 'low' / 'high' / null. Boundaries are inclusive (the limit itself is fine); 0 is a real reading.
+function checkRange(rule,v){
+  if(typeof v!=='number'||isNaN(v))return null;
+  if(typeof rule.min==='number'&&v<rule.min)return'low';
+  if(typeof rule.max==='number'&&v>rule.max)return'high';
+  return null;
+}
+function checkDelta(rule,actual,sp){
+  if(typeof actual!=='number'||typeof sp!=='number'||isNaN(actual)||isNaN(sp))return null;
+  var d=Math.round((actual-sp)*1000)/1000;
+  if(typeof rule.below==='number'&&d<-rule.below)return'below';
+  if(typeof rule.above==='number'&&d>rule.above)return'above';
+  return null;
+}
+function boundsText(r){
+  var hasMin=typeof r.min==='number',hasMax=typeof r.max==='number',u=r.unit?' '+r.unit:'';
+  if(hasMin&&hasMax)return r.min+'–'+r.max+u;
+  if(hasMax)return'up to '+r.max+u;
+  if(hasMin)return'at least '+r.min+u;
+  return'no limit set';
+}
+function ruleRegex(path){
+  var parts=path.split('[*]').map(function(p){return p.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');});
+  return new RegExp('^'+parts.join('\\[[^\\]]*\\]')+'$');
+}
+function flattenRec(o,prefix,out){
+  out=out||[];prefix=prefix||'';
+  if(Array.isArray(o)){
+    o.forEach(function(it,i){var nm=(it&&(it.unit||it.pump||it.zone))||String(i);flattenRec(it,prefix+'['+nm+']',out);});
+    return out;
+  }
+  if(o&&typeof o==='object'){for(var k in o){flattenRec(o[k],prefix?(prefix+'.'+k):k,out);}return out;}
+  out.push({path:prefix,value:o});
+  return out;
+}
+function humanPath(path){
+  var m=/\[([^\]]*)\][^\[]*$/.exec(path);
+  var key=path.split('.').pop().replace(/_/g,' ');
+  if(m)return m[1]+' '+key;
+  var seg=path.split('.');
+  return seg.length>1?(seg[0].replace(/_/g,' ')+' '+key):key;
+}
+// Structured flags for one record: [{type:'fault'|'range'|'delta', path, text}]
+function flagList(rec,rules){
+  rules=rules||RULES;
+  var flat=flattenRec(rec,'',[]),map={},out=[];
+  flat.forEach(function(f){map[f.path]=f.value;});
+  flat.forEach(function(f){if(/\.status$/.test(f.path)&&f.value==='F')out.push({type:'fault',path:f.path,text:humanPath(f.path)+': Fault'});});
+  rules.forEach(function(rule){
+    if(rule.on===false)return;
+    var re=ruleRegex(rule.path);
+    flat.forEach(function(f){
+      if(!re.test(f.path))return;
+      var u=rule.unit?(' '+rule.unit):'';
+      if(rule.kind==='range'){
+        var s=checkRange(rule,f.value);
+        if(s)out.push({type:'range',path:f.path,text:humanPath(f.path)+' '+f.value+u+' ('+(s==='low'?'below':'above')+' limit '+boundsText(rule)+')'});
+      }else{
+        var statusPath=f.path.slice(0,f.path.lastIndexOf('.'))+'.status';
+        if(map[statusPath]==='O')return;                     // a unit that is Off is not delivering
+        var sp=typeof rule.spValue==='number'?rule.spValue:(typeof rule.sp==='string'?map[rule.sp]:undefined),t=checkDelta(rule,f.value,sp);
+        if(t){var diff=Math.abs(Math.round((f.value-sp)*10)/10);
+          out.push({type:'delta',path:f.path,text:humanPath(f.path)+' '+f.value+u+' is '+diff+u+' '+t+' setpoint '+sp+' (allowed '+(t==='below'?rule.below:rule.above)+u+' '+t+')'});}
+      }
+    });
+  });
+  return out;
+}
+function recordFlags(rec){return flagList(rec).map(function(f){return f.text;});}
+// ===== RULES END =====
+// ===== DASH LOGIC BEGIN (pure, no DOM; tested in Node) =====
+var DASH_VERSION='v1.1 - 2026-10-19';
+var NAME_KEYS=['unit','pump','zone'];
+function itemName(it){return(it&&(it.unit||it.pump||it.zone))||'';}
+// getPath(rec,'boiler_plant.boilers[B-1].psi') -> value (undefined if absent)
+function getPath(o,path){
+  var segs=String(path).split('.');
+  for(var i=0;i<segs.length;i++){
+    if(o===null||o===undefined)return undefined;
+    var m=/^([^\[]+)(?:\[(.*)\])?$/.exec(segs[i]);if(!m)return undefined;
+    o=o[m[1]];
+    if(m[2]!==undefined){if(!Array.isArray(o))return undefined;var nm=m[2];o=o.find(function(it){return itemName(it)===nm;});}
+  }
+  return o;
+}
+// Equipment sections. st = has an R/O/F status. sp = setpoint path, spField = the reading judged against it.
+var SECTIONS=[
+  {id:'chillers',title:'Chillers',path:'chiller_plant.chillers',group:'cool',st:true,sp:'chiller_plant.cooling_setpoint',spField:'supply_temp'},
+  {id:'cwp',title:'Condenser water pumps',path:'condenser_water_pumps',group:'cool',st:true},
+  {id:'chx',title:'Cooling heat exchangers',path:'cooling_hx.zones',group:'cool',hx:true,sp:'cooling_hx.hx_setpoint',spField:'supply_temp'},
+  {id:'cloop',title:'Cool loop pressure',path:'cool_loop',group:'cool',single:true},
+  {id:'ccp',title:'Cool loop circulation pumps',path:'cool_loop.circ_pumps',group:'cool',st:true},
+  {id:'tower',title:'Cooling tower',path:'cooling_tower',group:'cool',single:true,sp:'cooling_tower.ct_setpoint',spField:'tower_return_temp'},
+  {id:'boilers',title:'Boilers',path:'boiler_plant.boilers',group:'heat',st:true,sp:'boiler_plant.heating_setpoint',spField:'temp'},
+  {id:'fwp',title:'Feedwater pumps',path:'feedwater_pumps',group:'heat',st:true},
+  {id:'hhx',title:'Heating heat exchangers',path:'heating_hx.zones',group:'heat',hx:true,sp:'heating_hx.hx_setpoint',spField:'supply_temp'},
+  {id:'hloop',title:'Heat loop pressure',path:'heat_loop',group:'heat',single:true},
+  {id:'hcp',title:'Heat loop circulation pumps',path:'heat_loop.circ_pumps',group:'heat',st:true},
+  {id:'dhw',title:'Domestic hot water tank',path:'dhw_tank',group:'heat',single:true,sp:'dhw_tank.tank_setpoint',spField:'tank_temperature'},
+  {id:'bp',title:'DHW booster pumps',path:'dhw_tank.booster_pumps',group:'heat',st:true},
+  {id:'hrc',title:'Heat recovery chiller',path:'hrc',group:'shared',single:true},
+  {id:'hrcp',title:'HRC pumps',path:'hrc_pumps',group:'shared',st:true}
+];
+var HX_NOTES={'HX-7':'<20','HX-8':'T1 >20','HX-9':'T2 >20','HX-2':'DHW','HX-3':'<20','HX-4':'T1 >20','HX-5':'T2 >20'};
+var KEY_LABELS={supply_temp:'Supply °F',valve_pct:'Valve %',running_pump:'Pump',psi:'PSI',hz:'Hz',amps:'Amps',status:'Status',temp:'Temp °F',fire_rate:'Fire %',pct_full_power:'Power %',
+  cool_loop_psi:'Loop PSI',heat_loop_psi:'Loop PSI',lead_tower:'Lead tower',ct_setpoint:'Setpoint °F',tower_return_temp:'Return °F',chem_feeder_status:'Chem feeder',ph:'pH',orp_mv:'ORP mV',
+  temperature:'Temp °F',conductivity:'Cond. µS/cm',basket_strainer_1_psi:'Strainer 1 PSI',basket_strainer_2_psi:'Strainer 2 PSI',tank_setpoint:'Setpoint °F',system_pressure:'System PSI',
+  suction_pressure:'Suction PSI',tank_temperature:'Tank °F',demand:'Demand %',mode:'Mode',entering_chilled_water:'Ent. CW °F',leaving_chilled_water:'Lvg. CW °F',entering_heating_water:'Ent. HW °F',leaving_heating_water:'Lvg. HW °F'};
+// primary reading shown as the trend line on an equipment card
+var TREND_KEYS=['supply_temp','temp','tank_temperature','tower_return_temp','psi','pct_full_power','cool_loop_psi','heat_loop_psi','status','hz','amps'];
+function keyLabel(k){return KEY_LABELS[k]||k.replace(/_/g,' ');}
+
+function recWhen(r){
+  var m=(r&&r.meta)||{},d=/^(\d{4})-(\d{2})-(\d{2})$/.exec(m.date||'');if(!d)return null;
+  var t=/^(\d{1,2}):(\d{2})/.exec(m.time||'')||[0,'0','0'];
+  return new Date(+d[1],+d[2]-1,+d[3],+t[1],+t[2]);
+}
+function sortRecords(list){
+  return list.slice().sort(function(a,b){
+    var ta=recWhen(a),tb=recWhen(b),x=(tb?tb.getTime():0)-(ta?ta.getTime():0);
+    return x||String(b.recorded_at).localeCompare(String(a.recorded_at));
+  });
+}
+function ageText(ms){
+  var m=Math.round(ms/60000);
+  if(m<1)return'just now';if(m<90)return m+' min ago';
+  var h=Math.round(m/60);if(h<48)return h+' h ago';
+  return Math.round(h/24)+' days ago';
+}
+function ageLevel(ms){var h=ms/3600000;return h<=24?'ok':(h<=48?'warn':'late');}   // green within 24 h, amber within 48 h, red beyond
+function fmtNum(v,dp){if(typeof v!=='number'||isNaN(v))return'—';var p=Math.pow(10,dp===undefined?1:dp);var r=Math.round(v*p)/p;return String(r);}
+
+function sectionItems(rec,sec){
+  var o=getPath(rec,sec.path);
+  if(o===null||o===undefined)return[];
+  if(Array.isArray(o))return o.map(function(it){return{name:itemName(it),obj:it};});
+  return sec.single?[{name:sec.title,obj:o}]:[];
+}
+function primFields(obj){var out=[];for(var k in obj){if(NAME_KEYS.indexOf(k)>=0)continue;var v=obj[k];if(v!==null&&typeof v==='object')continue;out.push(k);}return out;}
+function hasData(obj){var f=primFields(obj);for(var i=0;i<f.length;i++){var v=obj[f[i]];if(v!==null&&v!==undefined&&v!=='')return true;}return false;}
+function findItem(rec,sec,name){var it=sectionItems(rec,sec);for(var i=0;i<it.length;i++)if(it[i].name===name)return it[i].obj;return null;}
+function unitList(records){
+  var seen={},out=[];
+  SECTIONS.forEach(function(sec){records.forEach(function(r){sectionItems(r,sec).forEach(function(it){var k=sec.id+'|'+it.name;if(!seen[k]){seen[k]=1;out.push({sec:sec,name:it.name});}});});});
+  return out;
+}
+// per unit: when it was last actually recorded (records are newest first)
+function lastChecked(records,now){
+  return unitList(records).map(function(u){
+    for(var i=0;i<records.length;i++){
+      var it=findItem(records[i],u.sec,u.name);
+      if(it&&hasData(it)){var w=recWhen(records[i]);if(w){var ms=now.getTime()-w.getTime();return{sec:u.sec,name:u.name,when:w,ms:ms,level:ageLevel(ms)};}}
+    }
+    return{sec:u.sec,name:u.name,when:null,ms:null,level:'none'};
+  });
+}
+function statusCounts(rec){
+  var c={R:0,O:0,F:0,none:0,faults:[]};
+  SECTIONS.forEach(function(sec){
+    if(!sec.st)return;
+    sectionItems(rec,sec).forEach(function(it){
+      var s=it.obj.status;
+      if(s==='R'||s==='O'||s==='F'){c[s]++;if(s==='F')c.faults.push(it.name);}else c.none++;
+    });
+  });
+  return c;
+}
+function num(v){return typeof v==='number'&&!isNaN(v)?v:null;}
+// one row per heat exchanger zone: delivery (supply) vs the section setpoint, same round
+// the setpoint a zone is judged against: its own fixed value (HX-2), or the one recorded in the round
+function findDeltaRule(rules,path,anyState){
+  var best=null;
+  (rules||[]).forEach(function(r){if(r.kind!=='delta')return;if(!anyState&&r.on===false)return;if(ruleRegex(r.path).test(path)&&(!best||r.path.indexOf('[*]')<0))best=r;});
+  return best;
+}
+function zoneSetpoint(rec,sec,name,rules){
+  var rule=rules?findDeltaRule(rules,sec.path+'['+name+'].supply_temp',true):null;
+  if(rule&&typeof rule.spValue==='number')return rule.spValue;
+  if(rule&&rule.fixedSp)return null;                         // own setpoint, not set yet: never fall back to the heating one
+  return num(getPath(rec,sec.sp));
+}
+function lastRecs(records,n){return records.slice(0,n).reverse();}   // oldest -> newest, same order as seriesOf
+function hxRows(rec,sec,rules){
+  return sectionItems(rec,sec).map(function(it){
+    var sp=zoneSetpoint(rec,sec,it.name,rules),s=num(it.obj.supply_temp);
+    return{name:it.name,supply:s,setpoint:sp,delta:(s!==null&&sp!==null)?Math.round((s-sp)*10)/10:null,valve:num(it.obj.valve_pct),pump:it.obj.running_pump||null,psi:num(it.obj.psi)};
+  });
+}
+// values oldest -> newest for the last n rounds (records newest first)
+function seriesOf(records,n,fn){
+  var out=[];for(var i=Math.min(n,records.length)-1;i>=0;i--){var v;try{v=fn(records[i]);}catch(e){v=null;}out.push(num(v));}
+  return out;
+}
+function unitGetter(sec,name,key){return function(rec){var it=findItem(rec,sec,name);if(!it)return null;var v=it[key];return key==='status'?({R:2,O:1,F:0})[v]:v;};}
+// informational only: current reading is far from the previous rounds' typical value
+function isUnusual(cur,prior){
+  var p=prior.filter(function(v){return typeof v==='number';});
+  if(typeof cur!=='number'||p.length<5)return false;
+  var mean=p.reduce(function(a,b){return a+b;},0)/p.length;
+  var sd=Math.sqrt(p.reduce(function(a,b){return a+(b-mean)*(b-mean);},0)/p.length);
+  sd=Math.max(sd,Math.abs(mean)*0.01,0.01);
+  return Math.abs(cur-mean)>3*sd;
+}
+
+// ---- CSV: every saved value as a column, text cells neutralised against spreadsheet formulas ----
+function csvCell(v){
+  if(v===null||v===undefined)return'';
+  var s=String(v);
+  if(typeof v==='string'&&/^[=+\-@\t\r]/.test(s))s="'"+s;
+  if(/[",\n\r]/.test(s))s='"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+function recordsToCsv(records,rules){
+  var lead=['id','recorded_at','app_version','schema'],cols=[],seen={};
+  var rows=records.map(function(r){
+    var flat=flattenRec(r,'',[]),m={};
+    flat.forEach(function(f){m[f.path]=f.value;if(lead.indexOf(f.path)<0&&f.path!=='notes'&&!seen[f.path]){seen[f.path]=1;cols.push(f.path);}});
+    m.flags=flagList(r,rules).map(function(f){return f.text;}).join('; ');
+    return m;
+  });
+  var all=lead.concat(cols).concat(['notes','flags']);
+  var out=[all.map(csvCell).join(',')];
+  rows.forEach(function(m){out.push(all.map(function(c){return csvCell(m[c]);}).join(','));});
+  return'\ufeff'+out.join('\r\n')+'\r\n';
+}
+
+// ---- limits.json edits: ID-based, applied to the FRESH remote copy; first save seeds the starting rules ----
+function planRuleEdits(remote,upserts,removes,defaults){
+  var seeded=!remote.length,out=seeded?clone(defaults):remote.slice();
+  var fromRemote=new Set(seeded?[]:remote),added=seeded?out.length:0,removed=0;
+  upserts.forEach(function(u){
+    var i=out.findIndex(function(r){return r.id===u.id;});
+    if(i>=0){if(fromRemote.has(out[i])){removed++;added++;}out[i]=u;}
+    else{out.push(u);added++;}
+  });
+  removes.forEach(function(id){
+    var i=out.findIndex(function(r){return r.id===id;});
+    if(i>=0){if(fromRemote.has(out[i]))removed++;else added--;out.splice(i,1);}
+  });
+  return{list:out,added:added,removed:removed};
+}
+
+// ---- IMPORT: files saved by the ORIGINAL app (pretty-printed form data, every value is text) -> current record shape ----
+var LEGACY_STRING_KEYS=['lead_tower','chem_feeder_status','mode','running_pump','shift','operator','time','date','filename','unit','pump','zone'];
+var ROUND_SECTIONS=['chiller_plant','condenser_water_pumps','cooling_hx','cool_loop','cooling_tower','boiler_plant','feedwater_pumps','heating_hx','heat_loop','dhw_tank','hrc','hrc_pumps'];
+function legacyValue(key,v){
+  if(v===null||v===undefined)return null;
+  if(key==='notes')return String(v);
+  if(typeof v==='number')return isFinite(v)?v:null;
+  if(typeof v!=='string')return v;
+  var s=v.trim();
+  if(s===''||s==='-')return null;
+  if(key==='status'&&(s==='R'||s==='O'||s==='F'))return s;   // equipment status stays a letter; HRC status (a %) becomes a number
+  if(LEGACY_STRING_KEYS.indexOf(key)>=0)return v;
+  if(/^-?(\d+\.?\d*|\.\d+)$/.test(s))return parseFloat(s);       // "72.5" -> 72.5, "0" -> 0
+  return v;
+}
+function legacyWalk(o,key){
+  if(Array.isArray(o))return o.map(function(x){return legacyWalk(x,key);});
+  if(o&&typeof o==='object'){var out={};for(var k in o)out[k]=legacyWalk(o[k],k);return out;}
+  return legacyValue(key,o);
+}
+// two independent 32-bit hashes -> a stable id suffix: the same file always gets the same id, so re-importing never duplicates
+function hash12(str){
+  var h1=0x811c9dc5,h2=5381;
+  for(var i=0;i<str.length;i++){var c=str.charCodeAt(i);h1^=c;h1=Math.imul(h1,16777619)>>>0;h2=(Math.imul(h2,33)+c)>>>0;}
+  return(h1.toString(36)+h2.toString(36)).padStart(12,'0');
+}
+// -> {ok:true, record} or {ok:false, reason}
+function convertLegacy(obj){
+  if(!obj||typeof obj!=='object'||Array.isArray(obj)||!obj.meta||typeof obj.meta!=='object')return{ok:false,reason:'Not a plant round file (no "meta" block)'};
+  if(typeof obj.id==='string'&&obj.schema&&/^\d{4}-\d{2}-\d{2}$/.test(String(obj.meta.date||'')))return{ok:true,record:obj,passthrough:true};   // already in the current format
+  if(!ROUND_SECTIONS.some(function(k){return obj[k]!==undefined;}))return{ok:false,reason:'No equipment sections found'};
+  var ds=String(obj.meta.date===undefined||obj.meta.date===null?'':obj.meta.date).trim();
+  var m=/^(\d{4})(\d{2})(\d{2})$/.exec(ds)||/^(\d{4})-(\d{2})-(\d{2})$/.exec(ds);
+  if(!m)return{ok:false,reason:'Missing or unreadable date ("'+ds+'")'};
+  var y=+m[1],mo=+m[2],da=+m[3];
+  if(y<2000||y>2100||mo<1||mo>12||da<1||da>31)return{ok:false,reason:'Date out of range ("'+ds+'")'};
+  var round=parseInt(obj.meta.round,10);
+  if(!isFinite(round)||round<1)return{ok:false,reason:'Missing round number'};
+  var rec=legacyWalk(obj,''),meta=rec.meta;
+  meta.date=m[1]+'-'+m[2]+'-'+m[3];meta.round=round;delete meta.filename;
+  var tm=/^(\d{1,2}):(\d{2})/.exec(String(meta.time||'')),rat;
+  try{rat=new Date(y,mo-1,da,tm?+tm[1]:0,tm?+tm[2]:0).toISOString();}catch(e){rat=meta.date+'T00:00:00.000Z';}
+  var out={schema:1,id:'pr-'+m[1]+m[2]+m[3]+'-R'+round+'-i'+hash12(JSON.stringify(obj)),recorded_at:rat,app_version:'import v1 (original app)',meta:meta};
+  for(var k in rec){if(k!=='meta')out[k]=rec[k];}
+  return{ok:true,record:out};
+}
+function groupByMonth(records){var g={};records.forEach(function(r){var f=monthFile(r.meta&&r.meta.date);if(f)(g[f]=g[f]||[]).push(r);});return g;}
+// adds only the records whose id is not already on the server; nothing else is touched
+function planImport(remote,records){
+  var ids=new Set();for(var i=0;i<remote.length;i++)ids.add(remote[i]&&remote[i].id);
+  var add=records.filter(function(r){return!ids.has(r.id);});
+  if(!add.length)return null;
+  return{list:remote.concat(add),added:add.length,removed:0};
+}
+function monthsNeeded(oldestIso,now){var m=/^(\d{4})-(\d{2})/.exec(oldestIso||'');if(!m)return 3;return Math.max(1,(now.getFullYear()-(+m[1]))*12+(now.getMonth()+1-(+m[2]))+1);}
+// ===== DASH LOGIC END =====
+
+</script>
+<script>
+(function() {
+  'use strict';
+  var $ = function(id) { return document.getElementById(id); };
+  var TOKEN_KEY = 'oslu-token', ADMIN_KEY = 'oslu-admin', REFRESH_MS = 7 * 60 * 1000, LIMIT_BYTES = 700 * 1024;
+  var S = { records: [], fileOf: {}, sizes: {}, rules: RULES, monthsLoaded: 3, lastOk: null, lastErr: null, loadedOnce: false, allMissing: false,
+            nextAt: Date.now() + REFRESH_MS, admin: false, tab: 'over', loading: false, pendUp: {}, pendRm: {}, histShown: 100, rulesFromFile: false, imp: null };
+  try { S.admin = localStorage.getItem(ADMIN_KEY) === '1'; } catch (e) {}
+  var toastTimer = null;
+  function toast(msg, ms) { var t = $('toast'); t.textContent = msg; t.className = 'toast on'; clearTimeout(toastTimer); toastTimer = setTimeout(function() { t.className = 'toast'; }, ms || 3000); }
+  var pad2 = function(n) { return String(n).padStart(2, '0'); };
+  function fmtWhen(d) { return d ? d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ', ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—'; }
+  function shortDate(r) { var m = (r.meta || {}).date || ''; return m ? m.slice(5, 7) + '/' + m.slice(8, 10) : ''; }
+  function monthFiles(n, now) {
+    var out = [], y = now.getFullYear(), m = now.getMonth() + 1;
+    for (var i = 0; i < n; i++) { out.push('data-' + y + '-' + pad2(m) + '.json'); m--; if (m === 0) { m = 12; y--; } }
+    return out;
+  }
+  var LVL = { ok: ['✓', 'Within 24 h'], warn: ['!', 'Over 24 h'], late: ['✕', 'Over 48 h'], none: ['—', 'Not recorded'] };
+
+  // ── LOAD ──────────────────────────────────────────────────────────────────
+  async function load() {
+    if (S.loading) return;
+    S.loading = true; $('btn-refresh').disabled = true;
+    try {
+      if (!GH_TOKEN) { S.lastErr = { reason: 'notoken' }; return; }
+      var files = monthFiles(S.monthsLoaded, new Date()), all = [], sizes = {}, fileOf = {}, missing = 0, fail = null;
+      for (var i = 0; i < files.length; i++) {
+        var r = await ghFetchRemote(files[i]);
+        if (!r.ok) { fail = r; break; }
+        if (r.missing) missing++;
+        else { sizes[files[i]] = r.size || JSON.stringify(r.list).length; r.list.forEach(function(x) { if (x && x.id) { fileOf[x.id] = files[i]; all.push(x); } }); }
+      }
+      if (fail) { S.lastErr = fail; return; }                      // keep showing the last good data, but say so
+      var lim = await ghFetchRemote('limits.json');
+      if (lim.ok) { setRules(lim.list); S.rulesFromFile = lim.list.length > 0; S.rules = RULES; }
+      S.records = sortRecords(all); S.fileOf = fileOf; S.sizes = sizes; S.allMissing = (missing === files.length);
+      S.lastOk = Date.now(); S.lastErr = null; S.loadedOnce = true;
+    } finally {
+      S.loading = false; S.nextAt = Date.now() + REFRESH_MS; $('btn-refresh').disabled = false; render();
+    }
+  }
+
+  // ── HEADER / BANNERS ──────────────────────────────────────────────────────
+  function tick() {
+    var ms = Math.max(0, S.nextAt - Date.now());
+    $('cd').textContent = 'Next refresh in ' + Math.floor(ms / 60000) + ':' + pad2(Math.floor(ms / 1000) % 60);
+    $('upd').textContent = S.lastOk ? 'Updated ' + new Date(S.lastOk).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'Not loaded yet';
+    renderBanner();
+    if (ms <= 0 && !S.loading) load();
+  }
+  function renderBanner() {
+    var b = $('stale'), t = '', err = false;
+    if (!GH_TOKEN) { t = 'No token set. Tap Token to connect to the plant data.'; err = true; }
+    else if (S.lastErr) {
+      err = true;
+      t = S.loadedOnce ? 'Data is ' + Math.max(1, Math.round((Date.now() - S.lastOk) / 60000)) + ' minutes old. The last refresh failed: ' + ghExplain(S.lastErr) + '.' : 'Could not load data: ' + ghExplain(S.lastErr) + '.';
+    } else if (S.loadedOnce && S.allMissing && !S.records.length) t = 'No data found yet. If rounds have been submitted, check the token, the repo and the data branch (a 404 means missing, or no access).';
+    b.hidden = !t; b.className = 'banner' + (err ? ' err' : ''); b.textContent = (err ? '⚠ ' : '') + t;
+  }
+  function renderAlerts() {
+    var box = $('alerts'), items = [];
+    if (S.records.length) {
+      var latest = S.records[0], w = recWhen(latest), ms = w ? Date.now() - w.getTime() : 0;
+      if (w && ageLevel(ms) === 'late') items.push('No round recorded for ' + ageText(ms).replace(' ago', '') + '. The latest was ' + fmtWhen(w));
+      flagList(latest, S.rules).forEach(function(f) { items.push(f.text); });
+    }
+    box.hidden = !items.length;
+    box.innerHTML = items.length ? '<h2>⚠ ' + items.length + ' urgent item' + (items.length === 1 ? '' : 's') + ' in the latest round</h2><ul>' + items.map(function(t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : '';
+  }
+
+  // ── SVG CHARTS (no library: drawn from CSS variables, so light/dark follows the theme) ──
+  // Every chart that plots readings over time is interactive: hover (mouse), drag (touch) or arrow keys (keyboard) shows the
+  // date, time and reading nearest to the pointer. The horizontal axis is real time, so a missed day shows as a gap.
+  var CHARTS = {}, chartSeq = 0;
+  function pathOf(vals, X, Y) {
+    var d = '', pen = false;
+    vals.forEach(function(v, i) { if (v === null) { pen = false; return; } d += (pen ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); pen = true; });
+    return d;
+  }
+  function fmtFull(d) { return d ? d.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—'; }
+  function tipHtml(rec, lines) {
+    var m = rec.meta || {};
+    return '<b>' + esc(fmtFull(recWhen(rec))) + '</b>' + lines.map(function(l) { return '<div>' + esc(l) + '</div>'; }).join('') + '<div class="tipsub">Round ' + esc(dv(m.round)) + ' · ' + esc(dv(m.operator)) + '</div>';
+  }
+  function signed(v) { return (v > 0 ? '+' : '') + fmtNum(v); }
+  function timeAxis(recs, L, W, R) {
+    var times = recs.map(function(r) { var w = recWhen(r); return w ? w.getTime() : null; }), tv = times.filter(function(t) { return t !== null; });
+    var tmin = Math.min.apply(null, tv), tmax = Math.max.apply(null, tv);
+    return function(i) { if (times[i] === null) return L; if (tmax === tmin) return L + (W - L - R) / 2; return L + (times[i] - tmin) * (W - L - R) / (tmax - tmin); };
+  }
+  function regChart(vbW, pts) { var id = 'c' + (++chartSeq); CHARTS[id] = { vbW: vbW, pts: pts, cur: pts.length - 1 }; return id; }
+  var MARK = function(y1, y2, r) { return '<g class="xh" style="display:none"><line x1="0" x2="0" y1="' + y1 + '" y2="' + y2 + '"/><circle cx="0" cy="0" r="' + r + '"/></g>'; };
+
+  // o: {recs, act, sp, bandLo, bandHi, cls, first, last, label, tipLines(i)}
+  function lineChart(o) {
+    var W = 320, H = 150, L = 46, R = 10, T = 10, B = 26, n = o.act.length;
+    var pool = [].concat(o.act, o.sp || [], o.bandLo || [], o.bandHi || []).filter(function(v) { return v !== null && v !== undefined; });
+    if (!pool.length || o.act.filter(function(v) { return v !== null; }).length < 1) return '<div class="note pad">No readings in the loaded rounds.</div>';
+    var lo = Math.min.apply(null, pool), hi = Math.max.apply(null, pool);
+    if (hi - lo < 6) { var mid = (hi + lo) / 2; hi = mid + 3; lo = mid - 3; }      // never zoom in so far that 1 °F of noise looks like a swing
+    var padv = (hi - lo) * 0.06; lo -= padv; hi += padv;
+    var X = timeAxis(o.recs, L, W, R), Y = function(v) { return T + (hi - v) * (H - T - B) / (hi - lo); };
+    var dp = (hi - lo) < 6 ? 1 : 0, pts = [];
+    for (var k = 0; k < n; k++) if (o.act[k] !== null) pts.push({ x: X(k), y: Y(o.act[k]), html: tipHtml(o.recs[k], o.tipLines(k)) });
+    var id = regChart(W, pts), s = '<svg class="chart" data-chart="' + id + '" tabindex="0" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc((o.label || 'trend') + '. Hover, touch and drag, or use the left and right arrow keys to read values.') + '">';
+    s += '<line class="grid-l" x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(hi).toFixed(1) + '" y2="' + Y(hi).toFixed(1) + '"/><line class="grid-l" x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(lo).toFixed(1) + '" y2="' + Y(lo).toFixed(1) + '"/>';
+    if (o.bandLo && o.bandHi) {       // allowed band around the setpoint, per round
+      var seg = [];
+      for (var i = 0; i <= n; i++) {
+        if (i < n && o.bandLo[i] !== null && o.bandHi[i] !== null) seg.push(i);
+        else if (seg.length) {
+          if (seg.length > 1) { var up = seg.map(function(q) { return X(q).toFixed(1) + ',' + Y(o.bandHi[q]).toFixed(1); }), dn = seg.slice().reverse().map(function(q) { return X(q).toFixed(1) + ',' + Y(o.bandLo[q]).toFixed(1); }); s += '<polygon class="band" points="' + up.concat(dn).join(' ') + '"/>'; }
+          seg = [];
+        }
+      }
+    }
+    if (o.sp) s += '<path class="l-sp" d="' + pathOf(o.sp, X, Y) + '"/>';
+    s += '<path class="l-act l-' + o.cls + '" d="' + pathOf(o.act, X, Y) + '"/>';
+    for (var j = n - 1; j >= 0; j--) if (o.act[j] !== null) { s += '<circle class="dot-' + o.cls + '" cx="' + X(j).toFixed(1) + '" cy="' + Y(o.act[j]).toFixed(1) + '" r="4"/>'; break; }
+    s += '<text class="ax" x="' + (L - 5) + '" y="' + (Y(hi) + 4).toFixed(1) + '" text-anchor="end">' + fmtNum(hi, dp) + '</text><text class="ax" x="' + (L - 5) + '" y="' + (Y(lo) + 4).toFixed(1) + '" text-anchor="end">' + fmtNum(lo, dp) + '</text>';
+    s += '<text class="ax" x="' + L + '" y="' + (H - 6) + '">' + esc(o.first || '') + '</text><text class="ax" x="' + (W - R) + '" y="' + (H - 6) + '" text-anchor="end">' + esc(o.last || '') + '</text>';
+    return s + MARK(T, H - B, 5) + '</svg>';
+  }
+  // o: {recs, label, valueLabel}
+  function spark(vals, cls, o) {
+    var pts0 = vals.filter(function(v) { return v !== null; });
+    if (pts0.length < 2) return '<div class="cap">Not enough rounds for a trend yet</div>';
+    var W = 200, H = 56, n = vals.length, lo = Math.min.apply(null, pts0), hi = Math.max.apply(null, pts0);
+    if (hi === lo) { hi += 0.5; lo -= 0.5; }
+    var X = timeAxis(o.recs, 6, W, 6), Y = function(v) { return 6 + (hi - v) * (H - 12) / (hi - lo); }, pts = [], last = null;
+    for (var i = 0; i < n; i++) if (vals[i] !== null) { pts.push({ x: X(i), y: Y(vals[i]), html: tipHtml(o.recs[i], [o.valueLabel + ': ' + (o.fmt ? o.fmt(vals[i]) : fmtNum(vals[i], 2))]) }); last = i; }
+    var id = regChart(W, pts);
+    return '<svg class="spark" data-chart="' + id + '" tabindex="0" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(o.label + '. Hover, touch and drag, or use the arrow keys to read values.') + '"><path class="l-act l-' + cls + '" d="' + pathOf(vals, X, Y) + '"/><circle class="dot-' + cls + '" cx="' + X(last).toFixed(1) + '" cy="' + Y(vals[last]).toFixed(1) + '" r="3.5"/>' + MARK(4, H - 4, 4.5) + '</svg>';
+  }
+  // ── chart interaction: one set of listeners for every chart ──
+  var tip = null;
+  function placeTip(cx, cy) {
+    var w = tip.offsetWidth, h = tip.offsetHeight, x = cx + 14, y = cy - h - 12;
+    if (x + w > window.innerWidth - 8) x = cx - w - 14;
+    if (x < 8) x = 8;
+    if (y < 8) y = cy + 18;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+  function showPoint(svg, idx, cx, cy) {
+    var spec = CHARTS[svg.getAttribute('data-chart')]; if (!spec || !spec.pts.length) return;
+    idx = Math.max(0, Math.min(spec.pts.length - 1, idx)); spec.cur = idx;
+    var p = spec.pts[idx], g = svg.querySelector('.xh');
+    if (g) { g.style.display = ''; var ln = g.querySelector('line'), ci = g.querySelector('circle'); ln.setAttribute('x1', p.x); ln.setAttribute('x2', p.x); ci.setAttribute('cx', p.x); ci.setAttribute('cy', p.y); }
+    tip.innerHTML = p.html; tip.hidden = false;
+    if (cx === undefined) { var r = svg.getBoundingClientRect(); cx = r.left + p.x * r.width / spec.vbW; cy = r.top + p.y * r.width / spec.vbW; }
+    placeTip(cx, cy);
+  }
+  function hideTip() { tip.hidden = true; var g = document.querySelectorAll('.xh'); for (var i = 0; i < g.length; i++) g[i].style.display = 'none'; }
+  function nearestAt(svg, clientX) {
+    var spec = CHARTS[svg.getAttribute('data-chart')], r = svg.getBoundingClientRect(), vx = (clientX - r.left) * spec.vbW / r.width, best = 0, bd = Infinity;
+    spec.pts.forEach(function(p, i) { var dd = Math.abs(p.x - vx); if (dd < bd) { bd = dd; best = i; } });
+    return best;
+  }
+  function chartOf(e) { return e.target && e.target.closest ? e.target.closest('svg[data-chart]') : null; }
+  function onPointer(e) { var s = chartOf(e); if (!s) { if (e.type === 'pointerdown') hideTip(); return; } if (CHARTS[s.getAttribute('data-chart')]) showPoint(s, nearestAt(s, e.clientX), e.clientX, e.clientY); }
+  function initTip() {
+    tip = $('tip');
+    document.addEventListener('pointermove', onPointer); document.addEventListener('pointerdown', onPointer);
+    document.addEventListener('pointerout', function(e) { var s = chartOf(e); if (s && e.pointerType !== 'touch' && !(e.relatedTarget && s.contains(e.relatedTarget))) hideTip(); });
+    document.addEventListener('keydown', function(e) {
+      var s = chartOf(e); if (!s) { if (e.key === 'Escape') hideTip(); return; }
+      var spec = CHARTS[s.getAttribute('data-chart')]; if (!spec) return;
+      var step = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : e.key === 'Home' ? -1e9 : e.key === 'End' ? 1e9 : 0; if (!step) { if (e.key === 'Escape') hideTip(); return; }
+      e.preventDefault(); showPoint(s, spec.cur + step);
+    });
+    document.addEventListener('focusin', function(e) { var s = chartOf(e); if (s && CHARTS[s.getAttribute('data-chart')]) showPoint(s, CHARTS[s.getAttribute('data-chart')].cur); });
+    document.addEventListener('focusout', function(e) { if (chartOf(e)) hideTip(); });
+    window.addEventListener('scroll', hideTip, { passive: true });
+  }
+  function donut(c) {
+    var parts = [['R', c.R], ['O', c.O], ['F', c.F], ['N', c.none]], total = c.R + c.O + c.F + c.none, R0 = 52, C = 2 * Math.PI * R0, off = 0;
+    var s = '<svg class="donut" viewBox="0 0 120 120" role="img" aria-label="Equipment status"><g transform="rotate(-90 60 60)"><circle cx="60" cy="60" r="' + R0 + '" fill="none" stroke-width="16" class="s-N"/>';
+    parts.forEach(function(p) { if (!p[1]) return; var len = C * p[1] / total; s += '<circle cx="60" cy="60" r="' + R0 + '" fill="none" stroke-width="16" class="s-' + p[0] + '" stroke-dasharray="' + len.toFixed(2) + ' ' + (C - len).toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '"/>'; off += len; });
+    return s + '</g><text class="num" x="60" y="62" text-anchor="middle">' + total + '</text><text class="lab" x="60" y="80" text-anchor="middle">units</text></svg>';
+  }
+
+  // ── HX DELIVERY VS SETPOINT ───────────────────────────────────────────────
+  function deltaRuleFor(path) { return findDeltaRule(S.rules, path, false); }      // enabled rules only: these decide flags
+  function hxStatus(row, sec) {
+    if (row.supply === null) return { lvl: 'none', text: 'No reading' };
+    if (row.setpoint === null) { var own = findDeltaRule(S.rules, sec.path + '[' + row.name + '].supply_temp', true); return { lvl: 'info', text: own && own.fixedSp ? 'Setpoint not set' : 'No setpoint recorded' }; }
+    var rule = deltaRuleFor(sec.path + '[' + row.name + '].supply_temp');
+    var has = rule && (typeof rule.below === 'number' || typeof rule.above === 'number');
+    if (!has) return { lvl: 'info', text: 'Limits not set' };
+    var t = checkDelta(rule, row.supply, row.setpoint);
+    if (!t) return { lvl: 'ok', text: '✓ Within limits' };
+    return { lvl: 'bad', text: '⚠ ' + Math.abs(row.delta) + ' °F ' + t + ' setpoint' };
+  }
+  function spHeader(rows) {          // "setpoint 160 °F", or one entry per setpoint when zones differ (HX-2 has its own)
+    var g = {}, order = [];
+    rows.forEach(function(r) { var k = r.setpoint === null ? 'not set' : fmtNum(r.setpoint) + ' °F'; if (!g[k]) { g[k] = []; order.push(k); } g[k].push(r.name); });
+    if (order.length === 1) return 'setpoint ' + order[0];
+    return order.map(function(k) { return g[k].join(', ') + ': ' + k; }).join(' · ');
+  }
+  function renderHx() {
+    var recs = S.records, latest = recs[0], out = '';
+    [['hhx', 'Heating heat exchangers', 'w', 'heat'], ['chx', 'Cooling heat exchangers', 'c', 'cool']].forEach(function(g) {
+      var sec = SECTIONS.filter(function(x) { return x.id === g[0]; })[0], rows = hxRows(latest, sec, S.rules);
+      out += '<div class="card"><h2 class="' + g[2] + '">' + g[1] + ' · delivery temperature vs setpoint<small>' + esc(spHeader(rows)) + '</small></h2><div class="hxgrid">';
+      rows.forEach(function(row) {
+        var st = hxStatus(row, sec), rule = deltaRuleFor(sec.path + '[' + row.name + '].supply_temp'), shown = lastRecs(recs, 30);
+        var act = seriesOf(recs, 30, unitGetter(sec, row.name, 'supply_temp')), sp = seriesOf(recs, 30, function(r) { return zoneSetpoint(r, sec, row.name, S.rules); });
+        var bl = null, bh = null;
+        if (rule && (typeof rule.below === 'number' || typeof rule.above === 'number')) {
+          bl = sp.map(function(v) { return v === null ? null : v - (typeof rule.below === 'number' ? rule.below : 0); });
+          bh = sp.map(function(v) { return v === null ? null : v + (typeof rule.above === 'number' ? rule.above : 0); });
+        }
+        var dl = row.delta === null ? '—' : (row.delta > 0 ? '▲ +' : (row.delta < 0 ? '▼ ' : '● ')) + fmtNum(row.delta);
+        var chart = lineChart({ recs: shown, act: act, sp: sp, bandLo: bl, bandHi: bh, cls: g[3], first: shown.length ? shortDate(shown[0]) : '', last: shown.length ? shortDate(shown[shown.length - 1]) : '', label: row.name + ' delivery temperature versus setpoint',
+          tipLines: function(i) { var l = ['Delivery: ' + fmtNum(act[i]) + ' °F']; if (sp[i] !== null) { l.push('Setpoint: ' + fmtNum(sp[i]) + ' °F'); l.push('Difference: ' + signed(Math.round((act[i] - sp[i]) * 10) / 10) + ' °F'); } else l.push('Setpoint: not set'); return l; } });
+        out += '<div class="hxcard' + (st.lvl === 'bad' ? ' bad' : '') + '"><h3><span>' + esc(row.name) + ' <small>' + esc(HX_NOTES[row.name] || '') + '</small></span><span class="chip ' + st.lvl + '">' + esc(st.text) + '</span></h3>' +
+          '<div class="hxnums"><div>Setpoint<b>' + fmtNum(row.setpoint) + '</b></div><div>Delivery<b>' + fmtNum(row.supply) + '</b></div><div>Difference<b>' + dl + '</b></div><div>Valve %<b>' + fmtNum(row.valve) + '</b></div></div>' + chart +
+          '<div class="lgnd"><span><i class="' + (g[3] === 'heat' ? 'h' : '') + '"></i>Delivery °F</span><span><i class="d"></i>Setpoint</span>' + (bl ? '<span>Shaded: allowed range</span>' : '') + '</div></div>';
+      });
+      out += '</div></div>';
+    });
+    return out;
+  }
+
+  // ── OVERVIEW ──────────────────────────────────────────────────────────────
+  function hmCell(sec, name, key, obj, flagPaths, recs) {
+    var v = obj ? obj[key] : null, path = sec.single ? sec.path + '.' + key : sec.path + '[' + name + '].' + key;
+    if (v === null || v === undefined || v === '') return '<td class="na">—</td>';
+    if (key === 'status') { if (v === 'F') return '<td class="flag">⚠ Fault</td>'; if (v === 'R') return '<td class="sR">✓ Run</td>'; if (v === 'O') return '<td class="sO">Off</td>'; return '<td>' + esc(v) + '</td>'; }
+    if (typeof v === 'number') {
+      if (flagPaths[path]) return '<td class="flag">⚠ ' + fmtNum(v, 2) + '</td>';
+      var prior = seriesOf(recs.slice(1), 14, unitGetter(sec, name, key));
+      if (isUnusual(v, prior)) return '<td class="unusual">↕ ' + fmtNum(v, 2) + '</td>';
+      return '<td>' + fmtNum(v, 2) + '</td>';
+    }
+    return '<td>' + esc(v) + '</td>';
+  }
+  function renderHeatmap() {
+    var recs = S.records, latest = recs[0], fp = {}, out = '';
+    flagList(latest, S.rules).forEach(function(f) { fp[f.path] = 1; });
+    SECTIONS.forEach(function(sec) {
+      var items = sectionItems(latest, sec); if (!items.length) return;
+      var cols = [];
+      items.forEach(function(it) { primFields(it.obj).forEach(function(k) { if (cols.indexOf(k) < 0) cols.push(k); }); });
+      if (!cols.length) return;
+      out += '<h3 class="sechead">' + esc(sec.title) + '</h3><div class="scrollx"><table class="hm"><thead><tr><th>Unit</th>' + cols.map(function(k) { return '<th>' + esc(keyLabel(k)) + '</th>'; }).join('') + '</tr></thead><tbody>';
+      items.forEach(function(it) { out += '<tr><td>' + esc(it.name) + '</td>' + cols.map(function(k) { return hmCell(sec, it.name, k, it.obj, fp, recs); }).join('') + '</tr>'; });
+      out += '</tbody></table></div>';
+    });
+    return out;
+  }
+  function renderOverview() {
+    var el = $('p-over');
+    if (!S.records.length) { el.innerHTML = '<div class="card"><div class="empty">' + (S.loadedOnce ? 'No rounds found in the loaded months yet.' : (GH_TOKEN ? 'Loading…' : 'Add a token to load the plant data.')) + '</div></div>'; return; }
+    var recs = S.records, latest = recs[0], now = new Date(), w = recWhen(latest), ms = w ? now - w : 0, lvl = ageLevel(ms);
+    var week = recs.filter(function(r) { var x = recWhen(r); return x && now - x <= 7 * 86400000 && now - x >= -3600000; }).length;
+    var today = recs.filter(function(r) { var x = recWhen(r); return x && x.toDateString() === now.toDateString(); }).length;
+    var sc = statusCounts(latest), flags = flagList(latest, S.rules);
+    var cfg = 0, within = 0;
+    ['hhx', 'chx'].forEach(function(id) { var sec = SECTIONS.filter(function(x) { return x.id === id; })[0]; hxRows(latest, sec, S.rules).forEach(function(row) { var s = hxStatus(row, sec); if (s.lvl === 'ok' || s.lvl === 'bad') { cfg++; if (s.lvl === 'ok') within++; } }); });
+    var bytes = 0, big = false; Object.keys(S.sizes).forEach(function(f) { bytes += S.sizes[f]; if (S.sizes[f] > LIMIT_BYTES) big = true; });
+    var t = '';
+    t += '<div class="tile ' + lvl + '"><div class="k">Last round</div><div class="v">' + esc(fmtWhen(w)) + '</div><div class="s">Round ' + esc(dv((latest.meta || {}).round)) + ' · ' + esc(dv((latest.meta || {}).operator)) + ' · ' + esc(ageText(ms)) + '</div><span class="chip ' + lvl + '">' + LVL[lvl][0] + ' ' + LVL[lvl][1] + '</span></div>';
+    t += '<div class="tile"><div class="k">Rounds in the last 7 days</div><div class="v">' + week + '</div><div class="s">' + today + ' today · ' + recs.length + ' loaded</div></div>';
+    t += '<div class="tile ' + (sc.F ? 'bad' : 'ok') + '"><div class="k">Equipment (latest round)</div><div class="v">' + sc.R + ' running</div><div class="s">' + sc.O + ' off · ' + (sc.F ? '<b>⚠ ' + sc.F + ' fault' + (sc.F === 1 ? '' : 's') + ' (' + esc(sc.faults.join(', ')) + ')</b>' : '0 faults') + ' · ' + sc.none + ' not recorded</div></div>';
+    t += '<div class="tile ' + (flags.length ? 'bad' : 'ok') + '"><div class="k">Flags in latest round</div><div class="v">' + flags.length + '</div><div class="s">' + (flags.length ? '⚠ Faults and readings outside limits' : '✓ Nothing outside limits') + '</div></div>';
+    t += '<div class="tile ' + (cfg ? (within === cfg ? 'ok' : 'bad') : '') + '"><div class="k">HX delivery within limits</div><div class="v">' + (cfg ? within + ' of ' + cfg : '—') + '</div><div class="s">' + (cfg ? (within === cfg ? '✓ All exchangers on target' : '⚠ ' + (cfg - within) + ' outside the allowed difference') : 'Set the allowed difference in Settings') + '</div></div>';
+    if (S.admin) t += '<div class="tile ' + (big ? 'warn' : '') + '"><div class="k">Data size (admin)</div><div class="v">' + Math.round(bytes / 1024) + ' KB</div><div class="s">' + (big ? '! A month file is over 700 KB: plan archiving' : 'Largest allowed per month file: about 700 KB') + '</div></div>';
+    var h = '<div class="tiles">' + t + '</div>' + renderHx();
+    h += '<div class="grid2"><div class="card"><h2 class="t">Equipment status · latest round</h2><div class="donutwrap">' + donut(sc) + '<ul class="legend"><li><span class="sw R"></span><b>' + sc.R + '</b>Running</li><li><span class="sw O"></span><b>' + sc.O + '</b>Off</li><li><span class="sw F"></span><b>' + sc.F + '</b>' + (sc.F ? '⚠ ' : '') + 'Fault</li><li><span class="sw N"></span><b>' + sc.none + '</b>Not recorded</li></ul></div></div>';
+    var lc = lastChecked(recs, now), g = '<div class="card"><h2 class="t">Last checked · per unit<small>✓ within 24 h · ! within 48 h · ✕ older</small></h2><div class="lc">';
+    SECTIONS.forEach(function(sec) {
+      var us = lc.filter(function(u) { return u.sec.id === sec.id; }); if (!us.length) return;
+      g += '<h3>' + esc(sec.title) + '</h3><div class="chips">' + us.map(function(u) { return '<span class="chip ' + u.level + '" title="' + esc(u.when ? fmtWhen(u.when) : 'Never recorded') + '">' + LVL[u.level][0] + ' ' + esc(sec.single ? 'Checked' : u.name) + ' · ' + (u.ms === null ? 'never' : esc(ageText(u.ms))) + '</span>'; }).join('') + '</div>';
+    });
+    h += g + '</div></div></div>';
+    h += '<div class="card"><h2 class="c">Heatmap · latest values by unit<small>red = fault or outside limit · amber ↕ = unusual vs previous 14 rounds (information only) · — = not recorded</small></h2><div class="pad hm">' + renderHeatmap() + '</div></div>';
+    el.innerHTML = h;
+  }
+
+  // ── EQUIPMENT ─────────────────────────────────────────────────────────────
+  function renderEquipment() {
+    var el = $('p-equip'); if (!S.records.length) { el.innerHTML = '<div class="card"><div class="empty">No rounds loaded yet.</div></div>'; return; }
+    var recs = S.records, latest = recs[0], units = unitList(recs), out = '';
+    SECTIONS.forEach(function(sec) {
+      var us = units.filter(function(u) { return u.sec.id === sec.id; }); if (!us.length) return;
+      out += '<div class="sechead">' + esc(sec.title) + '<small>' + ({ cool: 'Cooling', heat: 'Heating', shared: 'Shared' })[sec.group] + '</small></div><div class="ucards">';
+      us.forEach(function(u) {
+        var obj = findItem(latest, sec, u.name) || {}, fields = primFields(obj).filter(function(k) { return k !== 'status'; }), st = obj.status, fault = st === 'F';
+        var chip = st === 'R' ? '<span class="chip ok">✓ Running</span>' : st === 'O' ? '<span class="chip none">Off</span>' : st === 'F' ? '<span class="chip bad">⚠ Fault</span>' : '';
+        var key = null; for (var i = 0; i < TREND_KEYS.length; i++) { var k = TREND_KEYS[i]; if (primFields(obj).indexOf(k) >= 0 && seriesOf(recs, 30, unitGetter(u.sec, u.name, k)).filter(function(v) { return v !== null; }).length >= 2) { key = k; break; } }
+        var dl = fields.map(function(k) { var v = obj[k]; return '<dt>' + esc(keyLabel(k)) + '</dt><dd>' + (v === null || v === undefined || v === '' ? '—' : esc(typeof v === 'number' ? fmtNum(v, 2) : v)) + '</dd>'; }).join('');
+        if (sec.sp && sec.spField && obj[sec.spField] !== undefined) { var sp = sec.hx ? zoneSetpoint(latest, sec, u.name, S.rules) : num(getPath(latest, sec.sp)), a = num(obj[sec.spField]); if (sp !== null) dl += '<dt>Setpoint</dt><dd>' + fmtNum(sp) + (a !== null ? ' (' + (a - sp >= 0 ? '+' : '') + fmtNum(a - sp) + ')' : '') + '</dd>'; }
+        out += '<div class="ucard' + (fault ? ' fault' : '') + '">' + (fault ? '<div class="oos">⚠ OUT OF SERVICE · Fault reported</div>' : '') + '<h3><span>' + esc(u.name) + '</span>' + chip + '</h3><dl>' + dl + '</dl>' +
+          (key ? spark(seriesOf(recs, 30, unitGetter(u.sec, u.name, key)), sec.group === 'heat' ? 'heat' : 'cool', { recs: lastRecs(recs, 30), label: u.name + ' ' + keyLabel(key) + ' trend', valueLabel: keyLabel(key), fmt: key === 'status' ? function(v) { return v === 2 ? 'Running' : v === 1 ? 'Off' : 'Fault'; } : null }) + '<div class="cap">' + esc(keyLabel(key)) + ' · last ' + Math.min(30, recs.length) + ' rounds</div>' : '<div class="cap">No trend yet</div>') + '</div>';
+      });
+      out += '</div>';
+    });
+    el.innerHTML = out;
+  }
+
+  // ── HISTORY ───────────────────────────────────────────────────────────────
+  function filteredHistory() {
+    var from = $('f-from').value, to = $('f-to').value, rnd = $('f-round').value, op = $('f-op').value.trim().toLowerCase(), q = $('f-q').value.trim().toLowerCase(), fo = $('f-flags').checked;
+    return S.records.filter(function(r) {
+      var m = r.meta || {};
+      if (from && (m.date || '') < from) return false;
+      if (to && (m.date || '') > to) return false;
+      if (rnd && String(m.round) !== rnd) return false;
+      if (op && String(m.operator || '').toLowerCase().indexOf(op) < 0) return false;
+      if (q && String(r.notes || '').toLowerCase().indexOf(q) < 0) return false;
+      if (fo && !flagList(r, S.rules).length) return false;
+      return true;
+    });
+  }
+  function renderHistory() {
+    var list = filteredHistory(), rounds = {}, dup = {};
+    S.records.forEach(function(r) { var m = r.meta || {}, k = m.date + '|' + m.round; dup[k] = (dup[k] || 0) + 1; rounds[m.round] = 1; });
+    var sel = $('f-round'), cur = sel.value, opts = '<option value="">All</option>' + Object.keys(rounds).sort().map(function(x) { return '<option value="' + esc(x) + '">' + esc(x) + '</option>'; }).join('');
+    if (sel.getAttribute('data-opts') !== opts) { sel.innerHTML = opts; sel.setAttribute('data-opts', opts); sel.value = cur; }
+    $('hcount').textContent = list.length + ' of ' + S.records.length + ' rounds';
+    var shown = list.slice(0, S.histShown), h = '';
+    shown.forEach(function(r) {
+      var m = r.meta || {}, fl = flagList(r, S.rules), d = m.date ? m.date.slice(5, 7) + '/' + m.date.slice(8, 10) + '/' + m.date.slice(0, 4) : '—';
+      h += '<tr><td>' + esc(d) + '</td><td>' + esc(dv(m.time)) + '</td><td>' + esc(dv(m.round)) + (dup[m.date + '|' + m.round] > 1 ? ' <span class="chip info">Duplicate</span>' : '') + '</td><td>' + esc(dv(m.operator)) + '</td><td>' + esc(dv(m.shift)) + '</td><td>' + esc(dv(m.osa_temp)) + '</td><td>' +
+        (fl.length ? '<details class="dd"><summary class="flagl">⚠ ' + fl.length + ' flag' + (fl.length === 1 ? '' : 's') + '</summary><ul>' + fl.map(function(f) { return '<li>' + esc(f.text) + '</li>'; }).join('') + '</ul></details>' : '<span class="chip ok">✓ None</span>') + '</td><td class="notes">' + esc(r.notes || '') + '</td>' +
+        (S.admin ? '<td><button class="btn del" data-del="' + esc(r.id) + '">Delete</button></td>' : '') + '</tr>';
+    });
+    $('hbody').innerHTML = h || '<tr><td colspan="9" class="empty">No rounds match these filters.</td></tr>';
+    $('hhead').innerHTML = '<tr><th>Date</th><th>Time</th><th>Round</th><th>Tested by</th><th>Shift</th><th>OSA °F</th><th>Flags</th><th>Notes</th>' + (S.admin ? '<th>Admin</th>' : '') + '</tr>';
+    $('hmore').hidden = list.length <= S.histShown;
+    var sz = Object.keys(S.sizes).sort().reverse().map(function(f) { return esc(f) + ': ' + Math.round(S.sizes[f] / 1024) + ' KB'; }).join(' · ');
+    $('hfiles').innerHTML = S.admin ? 'Data files loaded: ' + (sz || 'none') : '';
+  }
+  async function deleteRound(id) {
+    var r = S.records.filter(function(x) { return x.id === id; })[0], file = S.fileOf[id];
+    if (!r || !file) { toast('That round is not in the loaded data. Refresh first.'); return; }
+    var m = r.meta || {};
+    if (!confirm('Delete the round from ' + m.date + ' (Round ' + m.round + ', ' + (m.operator || 'no name') + ')?\nThis cannot be undone.')) return;
+    toast('Deleting…', 1500);
+    var res = await ghDeleteById(file, id);
+    if (res.ok) { toast(res.changed ? '✓ Round deleted' : 'That round was already gone'); load(); }
+    else toast('⚠ Not deleted: ' + ghExplain(res), 6000);
+  }
+  function exportCsv() {
+    var list = filteredHistory(); if (!list.length) { toast('Nothing to export'); return; }
+    var blob = new Blob([recordsToCsv(list, S.rules)], { type: 'text/csv;charset=utf-8' }), a = document.createElement('a'), d = new Date();
+    a.href = URL.createObjectURL(blob); a.download = 'OSLU_PlantRounds_' + d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) + '.csv';
+    document.body.appendChild(a); a.click(); setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 1000);
+    toast('✓ Exported ' + list.length + ' rounds');
+  }
+
+  // ── SETTINGS (flag limits, saved to limits.json) ──────────────────────────
+  function effRule(r) { return S.pendUp[r.id] || r; }
+  function rulesView() {
+    var base = S.rules.filter(function(r) { return !S.pendRm[r.id]; }).map(effRule), have = {};
+    S.rules.forEach(function(r) { have[r.id] = 1; });
+    Object.keys(S.pendUp).forEach(function(id) { if (!have[id] && !S.pendRm[id]) base.push(S.pendUp[id]); });
+    return base;
+  }
+  function numAttr(v) { return typeof v === 'number' ? v : ''; }
+  function catalog() {
+    var seen = {}, out = [], have = {};
+    rulesView().forEach(function(r) { if (r.kind === 'range') have[r.path] = 1; });
+    S.records.slice(0, 5).forEach(function(r) { flattenRec(r, '', []).forEach(function(f) {
+      if (typeof f.value !== 'number' || /^meta\./.test(f.path) || /^schema$/.test(f.path)) return;
+      var p = f.path.replace(/\[[^\]]*\]/g, '[*]'); if (!seen[p] && !have[p]) { seen[p] = 1; out.push(p); }
+    }); });
+    return out.sort();
+  }
+  function catLabel(p) {
+    var sec = SECTIONS.filter(function(s) { return p.indexOf(s.path + '[*].') === 0 || (s.single && p.indexOf(s.path + '.') === 0); })[0];
+    var key = p.split('.').pop();
+    return sec ? sec.title + ' · ' + keyLabel(key) + (p.indexOf('[*]') >= 0 ? ' (every unit)' : '') : p.replace(/_/g, ' ').replace(/\./g, ' › ');
+  }
+  function guessUnit(p) { var k = p.split('.').pop(); return /temp|setpoint/.test(k) && !/ph/.test(k) ? '°F' : /psi|pressure/.test(k) ? 'psi' : /hz/.test(k) ? 'Hz' : /amps/.test(k) ? 'A' : /pct|valve|fire|status|demand|power/.test(k) ? '%' : /orp/.test(k) ? 'mV' : /cond/.test(k) ? 'µS/cm' : ''; }
+  function renderSettings() {
+    var rs = rulesView(), dis = S.admin ? '' : ' disabled', pend = Object.keys(S.pendUp).length + Object.keys(S.pendRm).length;
+    var h = '<div class="card"><h2 class="t">Flag limits</h2><div class="pad note">These limits decide what is flagged on this dashboard and in the field app. Leave a box blank for no limit. They are saved in <b>limits.json</b> on the data branch; field iPads pick up changes the next time they sync. ' + (S.admin ? '' : '<b>Turn on Admin mode (top right) to edit.</b>') + '</div></div>';
+    h += '<div class="card"><h2 class="w">Delivery vs setpoint · allowed difference</h2><div class="pad note">A reading is flagged when it is further below the setpoint than <b>Allowed below</b>, or further above than <b>Allowed above</b>. Units that are Off are skipped. Blank = not flagged yet (the difference is still shown). <b>HX-2 (domestic hot water) has its own setpoint</b>, set here, because it is not the same as the heating setpoint used by HX-3, 4 and 5. The value you enter applies to every round on the charts, including older ones.</div><div class="scrollx set"><table><thead><tr><th>Reading</th><th>Setpoint</th><th>Allowed below</th><th>Allowed above</th><th>Unit</th><th>On</th></tr></thead><tbody>';
+    rs.filter(function(r) { return r.kind === 'delta'; }).forEach(function(r) {
+      h += '<tr><td>' + esc(r.label) + '<br><code>' + esc(r.path) + '</code></td><td>' + (r.fixedSp ? '<input class="fld" type="number" step="0.1" data-id="' + esc(r.id) + '" data-f="spValue" value="' + numAttr(r.spValue) + '" aria-label="Setpoint, ' + esc(r.label) + '"' + dis + '>' : '<span class="note">recorded each round</span>') + '</td><td><input class="fld" type="number" step="0.1" min="0" data-id="' + esc(r.id) + '" data-f="below" value="' + numAttr(r.below) + '" aria-label="Allowed below setpoint, ' + esc(r.label) + '"' + dis + '></td><td><input class="fld" type="number" step="0.1" min="0" data-id="' + esc(r.id) + '" data-f="above" value="' + numAttr(r.above) + '" aria-label="Allowed above setpoint, ' + esc(r.label) + '"' + dis + '></td><td>' + esc(r.unit || '') + '</td><td><input type="checkbox" data-id="' + esc(r.id) + '" data-f="on"' + (r.on !== false ? ' checked' : '') + dis + ' aria-label="Enabled, ' + esc(r.label) + '"></td></tr>';
+    });
+    h += '</tbody></table></div></div><div class="card"><h2 class="c">Reading ranges · minimum and maximum</h2><div class="scrollx set"><table><thead><tr><th>Reading</th><th>Minimum</th><th>Maximum</th><th>Unit</th><th>On</th><th></th></tr></thead><tbody>';
+    var rr = rs.filter(function(r) { return r.kind === 'range'; });
+    rr.forEach(function(r) {
+      h += '<tr><td>' + esc(r.label) + '<br><code>' + esc(r.path) + '</code></td><td><input class="fld" type="number" step="any" data-id="' + esc(r.id) + '" data-f="min" value="' + numAttr(r.min) + '" aria-label="Minimum, ' + esc(r.label) + '"' + dis + '></td><td><input class="fld" type="number" step="any" data-id="' + esc(r.id) + '" data-f="max" value="' + numAttr(r.max) + '" aria-label="Maximum, ' + esc(r.label) + '"' + dis + '></td><td><input class="fld" type="text" data-id="' + esc(r.id) + '" data-f="unit" value="' + esc(r.unit || '') + '" aria-label="Unit, ' + esc(r.label) + '"' + dis + '></td><td><input type="checkbox" data-id="' + esc(r.id) + '" data-f="on"' + (r.on !== false ? ' checked' : '') + dis + ' aria-label="Enabled, ' + esc(r.label) + '"></td><td><button class="btn" data-rm="' + esc(r.id) + '"' + dis + '>Remove</button></td></tr>';
+    });
+    if (!rr.length) h += '<tr><td colspan="6" class="empty">No range rules.</td></tr>';
+    var cat = catalog();
+    h += '</tbody></table></div><div class="filters"><label>Add a limit for another reading<select id="add-path" class="fld"' + dis + '>' + cat.map(function(p) { return '<option value="' + esc(p) + '">' + esc(catLabel(p)) + '</option>'; }).join('') + '</select></label><label>Minimum<input class="fld" id="add-min" type="number" step="any" style="width:100px"' + dis + '></label><label>Maximum<input class="fld" id="add-max" type="number" step="any" style="width:100px"' + dis + '></label><button class="btn" id="btn-add"' + dis + (cat.length ? '' : ' disabled') + '>Add limit</button></div></div>';
+    h += '<div class="card"><div class="filters"><button class="btn pri" id="btn-save-rules"' + (S.admin && pend ? '' : ' disabled') + '>Save changes' + (pend ? ' (' + pend + ')' : '') + '</button><button class="btn" id="btn-discard"' + (pend ? '' : ' disabled') + '>Discard</button><span class="note">' + (S.rulesFromFile ? 'Using the saved limits.json.' : 'Using the starting limits. The first save creates limits.json.') + '</span></div></div>';
+    h += importCardHtml();
+    $('p-set').innerHTML = h;
+  }
+  function stage(id, f, raw) {
+    var cur = rulesView().filter(function(r) { return r.id === id; })[0]; if (!cur) return;
+    var n = JSON.parse(JSON.stringify(cur));
+    if (f === 'on') n.on = raw; else if (f === 'unit') n.unit = raw; else n[f] = raw === '' ? null : parseFloat(raw);
+    S.pendUp[id] = n; updateSaveBtn();                      // no re-render: keeps keyboard focus while tabbing through the table
+  }
+  function updateSaveBtn() {
+    var pend = Object.keys(S.pendUp).length + Object.keys(S.pendRm).length, b = $('btn-save-rules'), d = $('btn-discard');
+    if (b) { b.disabled = !(S.admin && pend); b.textContent = 'Save changes' + (pend ? ' (' + pend + ')' : ''); }
+    if (d) d.disabled = !pend;
+  }
+  async function saveRules() {
+    var ups = Object.keys(S.pendUp).map(function(k) { return S.pendUp[k]; }).filter(function(r) { return !S.pendRm[r.id]; }), rms = Object.keys(S.pendRm);
+    for (var i = 0; i < ups.length; i++) {
+      var r = ups[i];
+      if (r.kind === 'range' && typeof r.min === 'number' && typeof r.max === 'number' && r.min > r.max) { toast('⚠ Minimum is larger than maximum for ' + r.label, 5000); return; }
+      if (r.kind === 'delta' && ((typeof r.below === 'number' && r.below < 0) || (typeof r.above === 'number' && r.above < 0))) { toast('⚠ Allowed differences cannot be negative (' + r.label + ')', 5000); return; }
+    }
+    $('btn-save-rules').disabled = true;
+    var res = await ghMutate('limits.json', function(rem) { return planRuleEdits(rem, ups, rms, DEFAULT_RULES); }, 'Update flag limits');
+    if (res.ok) { S.pendUp = {}; S.pendRm = {}; toast('✓ Limits saved'); load(); }
+    else { toast('⚠ Not saved: ' + ghExplain(res), 6000); renderSettings(); }
+  }
+
+  // ── IMPORT OLD ROUNDS (JSON files saved by the original app) ──────────────
+  function importCardHtml() {
+    var m = S.imp, dis = S.admin && !(m && m.busy) ? '' : ' disabled';
+    var h = '<div class="card"><h2 class="w">Import old rounds</h2><div class="pad note">Choose the JSON files saved by the original app (its Export button). You can select hundreds at once (in the file picker press Ctrl+A). Nothing is saved until you press Import. Rounds that are already here are skipped, so running it twice is safe. ' + (S.admin ? '' : '<b>Turn on Admin mode to import.</b>') + '</div>' +
+      '<div class="filters"><label>JSON files<input type="file" id="imp-files" class="fld" multiple accept=".json,application/json"' + dis + '></label><button class="btn pri" id="btn-import"' + (m && m.ready && S.admin && !m.busy ? '' : ' disabled') + '>' + (m && m.ready ? 'Import ' + m.newCount + ' round' + (m.newCount === 1 ? '' : 's') : 'Import') + '</button></div>';
+    h += '<div id="imp-out">' + importSummaryHtml() + '</div>';
+    return h + '</div>';
+  }
+  function importSummaryHtml() {
+    var m = S.imp, h = '';
+    if (m) {
+      h += '<div class="pad" id="imp-sum" aria-live="polite"><p class="note"><b>' + esc(m.msg || '') + '</b></p>';
+      if (m.months && m.months.length) {
+        h += '<div class="scrollx"><table><thead><tr><th>Month file</th><th>Rounds in your files</th><th>New</th><th>Already here</th></tr></thead><tbody>' +
+          m.months.map(function(x) { return '<tr><td>' + esc(x.file) + '</td><td>' + x.total + '</td><td><b>' + x.add + '</b></td><td>' + x.have + '</td></tr>'; }).join('') + '</tbody></table></div>';
+        h += '<p class="note">Dates run from <b>' + esc(m.oldest) + '</b> to <b>' + esc(m.newest) + '</b>.</p>';
+      }
+      (m.warnings || []).forEach(function(w) { h += '<p class="flagl">⚠ ' + esc(w) + '</p>'; });
+      if (m.invalid && m.invalid.length) {
+        h += '<details class="dd" open><summary class="flagl">⚠ ' + m.invalid.length + ' file' + (m.invalid.length === 1 ? '' : 's') + ' will be skipped</summary><ul>' +
+          m.invalid.slice(0, 15).map(function(x) { return '<li>' + esc(x.name) + ': ' + esc(x.reason) + '</li>'; }).join('') + (m.invalid.length > 15 ? '<li>…and ' + (m.invalid.length - 15) + ' more</li>' : '') + '</ul></details>';
+      }
+      h += '</div>';
+    }
+    return h;
+  }
+  function renderImport() {
+    var o = $('imp-out'); if (!o) { renderSettings(); return; }
+    var m = S.imp; o.innerHTML = importSummaryHtml();
+    var b = $('btn-import'); if (b) { b.disabled = !(m && m.ready && S.admin && !m.busy); b.textContent = m && m.ready ? 'Import ' + m.newCount + ' round' + (m.newCount === 1 ? '' : 's') : 'Import'; }
+    var f = $('imp-files'); if (f) f.disabled = !(S.admin && !(m && m.busy));      // the file box itself is never re-created, so it keeps showing what was chosen
+  }
+  async function analyzeImport(fileList) {
+    var files = [].slice.call(fileList || []);
+    if (!files.length) { S.imp = null; renderImport(); return; }
+    var m = S.imp = { busy: true, ready: false, msg: 'Reading ' + files.length + ' file' + (files.length === 1 ? '' : 's') + '…', invalid: [], warnings: [], months: [], recs: {}, newRecs: {}, newCount: 0 };
+    renderImport();
+    var seen = {}, valid = [], dups = 0, i;
+    for (i = 0; i < files.length; i++) {
+      var obj;
+      try { obj = JSON.parse((await files[i].text()).replace(/^\uFEFF/, '')); } catch (e) { m.invalid.push({ name: files[i].name, reason: 'Not valid JSON' }); continue; }
+      (Array.isArray(obj) ? obj : [obj]).forEach(function(it) {
+        var c = convertLegacy(it);
+        if (!c.ok) { m.invalid.push({ name: files[i].name, reason: c.reason }); return; }
+        if (seen[c.record.id]) { dups++; return; }
+        seen[c.record.id] = 1; valid.push(c.record);
+      });
+    }
+    if (dups) m.warnings.push(dups + ' file' + (dups === 1 ? ' was' : 's were') + ' an exact copy of another selected file and will be imported once.');
+    if (!valid.length) { m.busy = false; m.msg = 'No usable rounds found in the ' + files.length + ' selected files.'; renderImport(); return; }
+    if (!GH_TOKEN) { m.busy = false; m.msg = 'No token set. Add the token first, then choose the files again.'; renderImport(); return; }
+    m.recs = groupByMonth(valid);
+    var dates = valid.map(function(r) { return r.meta.date; }).sort(); m.oldest = dates[0]; m.newest = dates[dates.length - 1];
+    var today = new Date(), todayIso = today.getFullYear() + '-' + pad2(today.getMonth() + 1) + '-' + pad2(today.getDate()), fut = valid.filter(function(r) { return r.meta.date > todayIso; }).length;
+    if (fut) m.warnings.push(fut + ' round' + (fut === 1 ? ' is' : 's are') + ' dated in the future. Check those dates in the files.');
+    m.msg = 'Checking what is already saved…'; renderImport();
+    var keys = Object.keys(m.recs).sort();
+    for (i = 0; i < keys.length; i++) {
+      var f = keys[i], r = await ghFetchRemote(f);
+      if (!r.ok) { m.busy = false; m.msg = 'Could not check ' + f + ': ' + ghExplain(r) + '. Nothing was imported.'; m.months = []; renderImport(); return; }
+      var have = new Set(r.list.map(function(x) { return x && x.id; })), add = m.recs[f].filter(function(x) { return !have.has(x.id); }), bytes = (r.size || 0) + JSON.stringify(add).length;
+      m.newRecs[f] = add; m.newCount += add.length;
+      m.months.push({ file: f, total: m.recs[f].length, add: add.length, have: m.recs[f].length - add.length });
+      if (bytes > LIMIT_BYTES) m.warnings.push(f + ' would grow to about ' + Math.round(bytes / 1024) + ' KB, over the 700 KB guide. It will still import; plan to archive that month.');
+    }
+    m.busy = false; m.ready = m.newCount > 0;
+    m.msg = m.newCount ? 'Ready: ' + m.newCount + ' new round' + (m.newCount === 1 ? '' : 's') + ' from ' + valid.length + ' usable round' + (valid.length === 1 ? '' : 's') + ' (' + files.length + ' files selected).' : 'Everything in these files is already here. Nothing to import.';
+    renderImport();
+  }
+  async function runImport() {
+    var m = S.imp; if (!m || !m.ready || m.busy || !S.admin) return;
+    m.busy = true; m.ready = false; renderImport();
+    var keys = Object.keys(m.newRecs).filter(function(k) { return m.newRecs[k].length; }).sort(), done = 0, failed = null;
+    for (var i = 0; i < keys.length; i++) {
+      var f = keys[i], recs = m.newRecs[f]; m.msg = 'Importing ' + f + ' (' + (i + 1) + ' of ' + keys.length + ')…'; renderImport();
+      var res = await ghMutate(f, function(rem) { return planImport(rem, recs); }, 'Import ' + recs.length + ' round' + (recs.length === 1 ? '' : 's') + ' from original app');
+      if (!res.ok) { failed = { f: f, res: res }; break; }
+      done += recs.length;
+    }
+    m.busy = false;
+    if (failed) { m.ready = true; m.msg = 'Stopped at ' + failed.f + ': ' + ghExplain(failed.res) + '. ' + done + ' round' + (done === 1 ? ' was' : 's were') + ' imported before that. Press Import again to continue; rounds already imported are skipped.'; renderImport(); return; }
+    m.msg = '✓ Imported ' + done + ' round' + (done === 1 ? '' : 's') + '.'; m.newCount = 0;
+    S.monthsLoaded = Math.max(S.monthsLoaded, monthsNeeded(m.oldest, new Date()));
+    toast('✓ Imported ' + done + ' rounds', 4000); renderImport(); load();
+  }
+
+  // ── RENDER ────────────────────────────────────────────────────────────────
+  function render() {
+    CHARTS = {}; chartSeq = 0; if (tip) hideTip();
+    renderBanner(); renderAlerts();
+    $('btn-admin').textContent = 'Admin mode: ' + (S.admin ? 'on' : 'off'); $('btn-admin').className = 'tbtn' + (S.admin ? ' on' : ''); $('btn-admin').setAttribute('aria-pressed', S.admin ? 'true' : 'false');
+    renderOverview(); renderEquipment(); renderHistory();
+    var ae = document.activeElement;
+    if (!(S.tab === 'set' && ae && $('p-set').contains(ae) && ae.tagName !== 'BUTTON')) renderSettings();   // never wipe a half-typed limit during auto-refresh
+    tick();
+  }
+  function showTab(t) {
+    S.tab = t;
+    ['over', 'equip', 'hist', 'set'].forEach(function(x) { $('p-' + x).classList.toggle('act', x === t); document.querySelector('.tab[data-t=' + x + ']').classList.toggle('act', x === t); });
+  }
+
+  // ── EVENTS ────────────────────────────────────────────────────────────────
+  document.querySelectorAll('.tab').forEach(function(b) { b.addEventListener('click', function() { showTab(b.getAttribute('data-t')); window.scrollTo(0, 0); }); });
+  $('btn-refresh').addEventListener('click', function() { load(); });
+  $('btn-admin').addEventListener('click', function() { S.admin = !S.admin; try { localStorage.setItem(ADMIN_KEY, S.admin ? '1' : '0'); } catch (e) {} render(); toast(S.admin ? 'Admin mode on: delete and limit editing enabled' : 'Admin mode off'); });
+  ['f-from', 'f-to', 'f-round', 'f-op', 'f-q', 'f-flags'].forEach(function(id) { $(id).addEventListener('input', function() { S.histShown = 100; renderHistory(); }); $(id).addEventListener('change', function() { S.histShown = 100; renderHistory(); }); });
+  $('hmore').addEventListener('click', function() { S.histShown += 100; renderHistory(); });
+  $('btn-csv').addEventListener('click', exportCsv);
+  $('btn-older').addEventListener('click', function() { S.monthsLoaded++; toast('Loading ' + S.monthsLoaded + ' months…', 1500); load(); });
+  $('hbody').addEventListener('click', function(e) { var id = e.target.getAttribute && e.target.getAttribute('data-del'); if (id) deleteRound(id); });
+  $('p-set').addEventListener('change', function(e) {
+    var t = e.target, id = t.getAttribute('data-id'), f = t.getAttribute('data-f'); if (!id || !f || !S.admin) return;
+    stage(id, f, f === 'on' ? t.checked : t.value);
+  });
+  $('p-set').addEventListener('change', function(e) { if (e.target.id === 'imp-files') analyzeImport(e.target.files); });
+  $('p-set').addEventListener('click', function(e) {
+    var t = e.target;
+    if (t.id === 'btn-import') runImport();
+    else if (t.id === 'btn-save-rules') saveRules();
+    else if (t.id === 'btn-discard') { S.pendUp = {}; S.pendRm = {}; renderSettings(); }
+    else if (t.getAttribute('data-rm') && S.admin) { S.pendRm[t.getAttribute('data-rm')] = 1; renderSettings(); }
+    else if (t.id === 'btn-add' && S.admin) {
+      var p = $('add-path').value, mn = $('add-min').value, mx = $('add-max').value; if (!p) return;
+      if (mn === '' && mx === '') { toast('Enter a minimum, a maximum, or both'); return; }
+      var rule = { id: 'r-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), kind: 'range', label: catLabel(p), path: p, min: mn === '' ? null : parseFloat(mn), max: mx === '' ? null : parseFloat(mx), unit: guessUnit(p), on: true };
+      S.pendUp[rule.id] = rule; renderSettings();
+    }
+  });
+  function openTok() { $('tok-state').textContent = GH_TOKEN ? 'A token is saved in this browser (ends in …' + GH_TOKEN.slice(-4) + ').' : 'No token is saved in this browser yet.'; $('tok-in').value = ''; $('tokmodal').hidden = false; $('tok-in').focus(); }
+  function closeTok() { $('tokmodal').hidden = true; $('tok-in').value = ''; }
+  $('btn-token').addEventListener('click', openTok); $('tok-close').addEventListener('click', closeTok);
+  $('tok-save').addEventListener('click', function() {
+    var t = $('tok-in').value.trim(); if (t.length < 20) { toast('⚠ That does not look like a token'); return; }
+    try { localStorage.setItem(TOKEN_KEY, t); } catch (e) { toast('⚠ Could not store the token in this browser'); return; }
+    GH_TOKEN = t; closeTok(); S.lastErr = null; toast('✓ Token saved'); load();
+  });
+  $('tok-clear').addEventListener('click', function() { try { localStorage.removeItem(TOKEN_KEY); } catch (e) {} GH_TOKEN = ''; closeTok(); render(); });
+  document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible' && S.lastOk && Date.now() - S.lastOk > REFRESH_MS) load(); });
+
+  // ── START ─────────────────────────────────────────────────────────────────
+  $('ver').textContent = DASH_VERSION;
+  initTip();
+  showTab('over'); render();
+  setInterval(tick, 1000);
+  if (GH_TOKEN) load();
+})();
+</script>
+</body>
+</html>
